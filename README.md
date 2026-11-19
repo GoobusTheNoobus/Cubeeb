@@ -6,9 +6,9 @@ various search techniques to speed up search. It is WIP.
 
 ## How to build
 Use the Makefile at root project directory. It supports basic commands:  
-`make` or `make release` - builds a release executable `build/cubeeb`  
-`make debug` - builds a debug executable `build-debug/cubeeb`  
-`make clean` - deletes the build directories  
+- `make` or `make release` - builds a release executable `build/cubeeb`  
+- `make debug` - builds a debug executable `build-debug/cubeeb`  
+- `make clean` - deletes the build directories  
 
 ## Features
 * Nothing :P
