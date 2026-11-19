@@ -17,6 +17,8 @@ Board::Board(std::string fen) {
 }
 
 std::ostream &operator << (std::ostream &os, const Board &board) {
+
+    // Print board
     for (int r = 7; r >= 0; --r) {
         os << r + 1 << ' ';
         for (int f = 0; f <= 7; ++f) {
@@ -26,6 +28,10 @@ std::ostream &operator << (std::ostream &os, const Board &board) {
     }
 
     os << "  a b c d e f g h\n\n";
+
+
+    // Print rest of game information
+
     os << "  Side to move: " << (board.side_to_move == Color::White ? "White" : "Black") << '\n';
     os << "  En passant square: " << square_to_algebraic(board.ep_square) << '\n';
     os << "  Castling: ";
@@ -34,6 +40,8 @@ std::ostream &operator << (std::ostream &os, const Board &board) {
     os << "    BK: " << static_cast<bool>(board.castling & CASTLING_BK) << ' ';
     os << "    BQ: " << static_cast<bool>(board.castling & CASTLING_BQ) << '\n';
     os << "  50 Move Rule: " << static_cast<int>(board.fifty_move) << "\n";
+
+    // Zobrist hash printed in hex (base-16)
     os << "  Zobrist hash: " << std::hex << "0x" << board.zobrist << std::dec << "\n\n";
     return os; 
 }
@@ -44,6 +52,8 @@ constexpr int
     FEN_STAGE_BOARD = 0, FEN_STAGE_SIDE = 1, FEN_STAGE_CASTLING = 2,
     FEN_STAGE_EP = 3, FEN_STAGE_RULE_FIFTY = 4;
 void Board::parse_fen(std::string fen) {
+
+    // Reset all game states before parsing
 
     board_arr.fill(Piece::None);
     piece_bb.fill(0ULL);
@@ -56,6 +66,7 @@ void Board::parse_fen(std::string fen) {
 
     zobrist = 0;
 
+    // We use string stream to split the fen by its spaces
     std::istringstream stream(fen);
     std::string token;
 
@@ -67,17 +78,20 @@ void Board::parse_fen(std::string fen) {
                 int rank = 7, file = 0;
                 for (char c : token) {
 
+                    // Slash character means new line 
                     if (c == '/') {
                         file = 0;
                         --rank;
                         continue;
                     }
 
+                    // Digit character moves file over by that number
                     if (std::isdigit(static_cast<unsigned char>(c))) {
                         file += c - '0';
                         continue;
                     }
 
+                    // Otherwise, we see it as a piece
                     Piece piece = char_to_piece(c);
                     Square square = make_square(rank, file);
                     place_piece(square, piece);
@@ -98,6 +112,10 @@ void Board::parse_fen(std::string fen) {
 
             case FEN_STAGE_CASTLING: {
                 for (char c : token) {
+
+                    // We look at every character in the "block," if it isn't recognized we don't count 
+                    // it. Technically, - is valid for no castling, so we don't immediately assume
+                    // that an unrecognized character is invalid fen
                     switch (c) {
                         case 'K': castling |= CASTLING_WK; break;
                         case 'Q': castling |= CASTLING_WQ; break;
@@ -126,6 +144,44 @@ void Board::parse_fen(std::string fen) {
     }
 }
 
+
+bool Board::is_square_attacked(Square square, Color by) const {
+
+    u64 our = color_bb[static_cast<int>(by)];
+    u64 occ = color_bb[0] | color_bb[1];
+
+    if (get_pawn_attack(square, opposite(by)) & piece_bb[static_cast<int>(PieceType::Pawn)] & our)
+        return true;
+
+    if (get_knight_attack(square) & piece_bb[static_cast<int>(PieceType::Knight)] & our) 
+        return true;
+
+    if (get_bishop_attack(square, occ) & (
+        piece_bb[static_cast<int>(PieceType::Bishop)] | piece_bb[static_cast<int>(PieceType::Queen)]
+    ) & our)
+        return true;
+
+    if (get_rook_attack(square, occ) & (
+        piece_bb[static_cast<int>(PieceType::Rook)] | piece_bb[static_cast<int>(PieceType::Queen)]
+    ) & our)
+        return true;  
+
+    if (get_king_attack(square) & piece_bb[static_cast<int>(PieceType::King)] & our) 
+        return true;
+
+    return false;
+}
+
+bool Board::is_in_check(Color color) const {
+    int king_sq = get_lsb(piece_bb[static_cast<int>(PieceType::King)] & color_bb[static_cast<int>(color)]);
+    return is_square_attacked(static_cast<Square>(king_sq), color);
+}
+
+bool Board::is_in_check() const {
+    return is_in_check(side_to_move);
+}
+
+
 void Board::place_piece(Square square, Piece piece) {
     if (piece == Piece::None) {
         clear_square(square);
@@ -139,7 +195,6 @@ void Board::place_piece(Square square, Piece piece) {
     color_bb[static_cast<int>(color_of(piece))] |= mask;
 
     zobrist ^= zobrist_psq(piece, square);
-    std::cout << zobrist << std::endl;
 }
 
 void Board::clear_square(Square square) {

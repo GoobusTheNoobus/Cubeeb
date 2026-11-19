@@ -1,5 +1,7 @@
 #include "bitboard.hpp"
 #include "board.hpp"
+#include "move.hpp"
+#include "movegen.hpp"
 #include "zobrist.hpp"
 #include <iostream>
 
@@ -10,4 +12,10 @@ int main() {
 
     Board board;
     std::cout << board;
+    
+    MoveList list;
+    MoveGenerator gen(list.moves, list.size);
+    gen.generate_moves(board);
+
+    std::cout << list;
 }

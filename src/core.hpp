@@ -4,6 +4,8 @@
 #include <string>
 
 using u64 = uint64_t;
+using u32 = uint32_t;
+using u16 = uint16_t;
 using u8 = uint8_t;
 
 enum class Square : u8 {
@@ -54,6 +56,10 @@ constexpr Color color_of(Piece piece) {
 
 constexpr Piece make_piece(PieceType pt, Color c) {
     return static_cast<Piece>(static_cast<int>(c) * 6 + static_cast<int>(pt));
+}
+
+constexpr Color opposite(Color c) { 
+    return static_cast<Color>(static_cast<int>(c) ^ 1);
 }
 
 inline Piece char_to_piece(char c) {
@@ -112,3 +118,5 @@ inline std::string square_to_algebraic(Square sq) {
 
     return std::string{file, rank};
 }
+
+

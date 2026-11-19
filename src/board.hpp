@@ -18,6 +18,10 @@ struct Board {
 
     void parse_fen(std::string fen); // Invalid fen may result in undefined behavior
 
+    bool is_square_attacked(Square square, Color color) const;
+    bool is_in_check(Color color) const;
+    bool is_in_check() const;
+
     // Board & pieces representation
 
     std::array<Piece, 64> board_arr;

@@ -1,11 +1,23 @@
 #pragma once
 #include "core.hpp"
+#include <bit>
 
 // General purpose bitboard functions
 
+// Finds the lease signficant bit 
+inline int get_lsb(u64 bb) {
+    return std::countr_zero(bb);
+}
+
+// Finds the number of set bits in bitboard
+inline int popcount(u64 bb) {
+    return std::popcount(bb);
+}
+
+
 // Helper function that pops the least significant bit and returns the index of it
 inline int pop_lsb(u64& bb) {
-    int lsb = bb & -bb; // bit trick
+    int lsb = get_lsb(bb);
     bb &= bb - 1; // another bit trick!
     return lsb;
 }
@@ -14,6 +26,18 @@ inline int pop_lsb(u64& bb) {
 inline u64 get_mask(Square square) {
     return 1ULL << static_cast<int>(square);
 }
+
+// Returns a bitboard of set bits on a certain rank
+inline u64 get_rank_mask(int rank) {
+    return 0xFFULL << (rank * 8);
+}
+
+// Returns a bitboard of set bits on a certain file
+inline u64 get_file_mask(int file) {
+    return 0x0101010101010101ULL << file;
+}
+
+// Attack bitboard functions
 
 void init_attacks();
 

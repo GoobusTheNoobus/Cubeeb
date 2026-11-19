@@ -6,13 +6,17 @@
 
 # Set some variables
 CXX := g++
-CXXFLAGS := -std=c++20 -Wall -Wextra
+CXXFLAGS := -std=c++20 -Wall -Wextra -MMD -MP
 
 SRC := $(wildcard src/*.cpp)
 
 # Debug object files would be in build-debug/ while release files would be in build/
 DEBUG_OBJ := $(patsubst src/%.cpp,build-debug/%.o,$(SRC))
 RELEASE_OBJ := $(patsubst src/%.cpp,build/%.o,$(SRC))
+
+# Dependency files (for tracking headers)
+DEBUG_DEP := $(DEBUG_OBJ:.o=.d)
+RELEASE_DEP := $(RELEASE_OBJ:.o=.d)
 
 .PHONY: all debug release clean
 
@@ -39,6 +43,10 @@ build-debug/%.o: src/%.cpp
 build/%.o: src/%.cpp
 	mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -O3 -c $< -o $@
+
+# Include generated dependencies
+-include $(DEBUG_DEP)
+-include $(RELEASE_DEP)
 
 # Nukes build files
 
