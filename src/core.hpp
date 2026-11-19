@@ -101,3 +101,14 @@ inline Square algebraic_to_square(const std::string &alg) {
 
     return make_square(rank, file);
 }
+
+inline std::string square_to_algebraic(Square sq) {
+    if (sq == Square::None) {
+        return "-";
+    }
+
+    char rank = rank_of(sq) + '1';
+    char file = file_of(sq) + 'a';
+
+    return std::string{file, rank};
+}

@@ -1,6 +1,7 @@
 #include "board.hpp"
 #include "bitboard.hpp"
 #include "core.hpp"
+#include "zobrist.hpp"
 #include <cctype>
 #include <iostream>
 #include <ostream>
@@ -24,8 +25,17 @@ std::ostream &operator << (std::ostream &os, const Board &board) {
         os << "\n";
     }
 
-    os << "  a b c d e f g h\n";
-    return os;
+    os << "  a b c d e f g h\n\n";
+    os << "  Side to move: " << (board.side_to_move == Color::White ? "White" : "Black") << '\n';
+    os << "  En passant square: " << square_to_algebraic(board.ep_square) << '\n';
+    os << "  Castling: ";
+    os << "    WK: " << static_cast<bool>(board.castling & CASTLING_WK) << ' '; 
+    os << "    WQ: " << static_cast<bool>(board.castling & CASTLING_WQ) << ' ';
+    os << "    BK: " << static_cast<bool>(board.castling & CASTLING_BK) << ' ';
+    os << "    BQ: " << static_cast<bool>(board.castling & CASTLING_BQ) << '\n';
+    os << "  50 Move Rule: " << static_cast<int>(board.fifty_move) << "\n";
+    os << "  Zobrist hash: " << std::hex << "0x" << board.zobrist << std::dec << "\n\n";
+    return os; 
 }
 
 // Don't question my FEN parsing approach
@@ -43,6 +53,8 @@ void Board::parse_fen(std::string fen) {
     castling = 0;
     fifty_move = 0;
     ep_square = Square::None;
+
+    zobrist = 0;
 
     std::istringstream stream(fen);
     std::string token;
@@ -77,7 +89,10 @@ void Board::parse_fen(std::string fen) {
             }
 
             case FEN_STAGE_SIDE: {
-                side_to_move = token == "b" ? Color::Black : Color::White;
+                if (token == "b") {
+                    side_to_move = Color::Black;
+                    zobrist ^= zobrist_black_move();
+                }
                 break;
             }
 
@@ -91,11 +106,13 @@ void Board::parse_fen(std::string fen) {
                     }
                 }
 
+                zobrist ^= zobrist_castling(castling);
                 break;
             }
 
             case FEN_STAGE_EP: {
                 ep_square = algebraic_to_square(token);
+                zobrist ^= zobrist_ep(ep_square);
                 break;
             }
 
@@ -120,6 +137,9 @@ void Board::place_piece(Square square, Piece piece) {
     board_arr[static_cast<int>(square)] = piece;
     piece_bb[static_cast<int>(ptype_of(piece))] |= mask;
     color_bb[static_cast<int>(color_of(piece))] |= mask;
+
+    zobrist ^= zobrist_psq(piece, square);
+    std::cout << zobrist << std::endl;
 }
 
 void Board::clear_square(Square square) {
@@ -133,4 +153,6 @@ void Board::clear_square(Square square) {
     board_arr[static_cast<int>(square)] = Piece::None;
     piece_bb[static_cast<int>(ptype_of(piece_there))] &= mask;
     color_bb[static_cast<int>(color_of(piece_there))] &= mask;
+
+    zobrist ^= zobrist_psq(piece_there, square);
 }

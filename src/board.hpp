@@ -6,6 +6,7 @@
 
 inline constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 inline constexpr u8 CASTLING_WK = 1, CASTLING_WQ = 2, CASTLING_BK = 4, CASTLING_BQ = 8;
+inline constexpr u8 CASTLING_WK_IDX = 0, CASTLING_WQ_IDX = 1, CASTLING_BK_IDX = 2, CASTLING_BQ_IDX = 3;
 
 struct Board {
 
