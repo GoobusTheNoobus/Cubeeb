@@ -2,7 +2,6 @@
 #include "bitboard.hpp"
 #include "core.hpp"
 #include <cctype>
-#include <cstring>
 #include <iostream>
 #include <ostream>
 #include <sstream>
