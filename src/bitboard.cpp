@@ -188,8 +188,8 @@ u64 raycast_bishop(Square square, u64 blockers) {
 
     u64 mask = 0;
 
-    int r = static_cast<int>(square) >> 3;
-    int f = static_cast<int>(square) & 7;
+    int r = rank_of(square);
+    int f = file_of(square);
 
     for (DirDelta dir : BISHOP_DIR) {
         for (int i = 1; i <= 7; ++i) {
@@ -217,8 +217,8 @@ u64 raycast_rook(Square square, u64 blockers) {
 
     u64 mask = 0;
 
-    int r = static_cast<int>(square) >> 3;
-    int f = static_cast<int>(square) & 7;
+    int r = rank_of(square);
+    int f = file_of(square);
 
     for (DirDelta dir : ROOK_DIR) {
         for (int i = 1; i <= 7; ++i) {

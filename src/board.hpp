@@ -1,0 +1,41 @@
+#pragma once
+#include "core.hpp"
+#include <array>
+#include <ostream>
+#include <string>
+
+inline constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+inline constexpr u8 CASTLING_WK = 1, CASTLING_WQ = 2, CASTLING_BK = 4, CASTLING_BQ = 8;
+
+struct Board {
+
+    // Sets up starting position
+    Board(); 
+
+    // Sets up custom position via fen
+    Board(std::string fen);
+
+    void parse_fen(std::string fen); // Invalid fen may result in undefined behavior
+
+    // Board & pieces representation
+
+    std::array<Piece, 64> board_arr;
+
+    std::array<u64, 6> piece_bb;
+    std::array<u64, 2> color_bb;
+    
+    // Game states
+
+    Color side_to_move = Color::White;
+    Square ep_square = Square::None;
+    u8 fifty_move = 0;
+    u8 castling = 0;
+
+    u64 zobrist = 0;
+
+    private:
+    void place_piece(Square square, Piece piece);
+    void clear_square(Square square);
+};  
+
+std::ostream &operator << (std::ostream &os, const Board &board);
