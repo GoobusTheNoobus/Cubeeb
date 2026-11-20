@@ -2,6 +2,7 @@
 #include "bitboard.hpp"
 #include "core.hpp"
 #include "move.hpp"
+#include "score.hpp"
 #include "zobrist.hpp"
 #include <cctype>
 #include <iostream>
@@ -10,7 +11,6 @@
 #include <string>
 
 Board::Board() {
-    parse_fen(START_FEN);
 }
 
 Board::Board(std::string fen) {
@@ -43,7 +43,9 @@ std::ostream &operator << (std::ostream &os, const Board &board) {
     os << "  50 Move Rule: " << static_cast<int>(board.fifty_move) << "\n";
 
     // Zobrist hash printed in hex (base-16)
-    os << "  Zobrist hash: " << std::hex << "0x" << board.zobrist << std::dec << "\n\n";
+    os << "  Zobrist hash: " << std::hex << "0x" << board.zobrist << std::dec << "\n";
+    os << "  Middlegame PSQT score: " << board.mg_score << '\n';
+    os << "  Endgame PSQT score: " << board.eg_score << "\n\n";
     return os; 
 }
 
@@ -66,6 +68,9 @@ void Board::parse_fen(std::string fen) {
     ep_square = Square::None;
 
     zobrist = 0;
+
+    mg_score = 0;
+    eg_score = 0;
 
     // We use string stream to split the fen by its spaces
     std::istringstream stream(fen);
@@ -190,12 +195,19 @@ void Board::place_piece(Square square, Piece piece) {
     }
 
     u64 mask = get_mask(square);
+    Color color = color_of(piece);
 
     board_arr[static_cast<int>(square)] = piece;
     piece_bb[static_cast<int>(ptype_of(piece))] |= mask;
-    color_bb[static_cast<int>(color_of(piece))] |= mask;
+    color_bb[static_cast<int>(color)] |= mask;
 
     zobrist ^= zobrist_psq(piece, square);
+
+    Score mg_piece_value = psqt_middlegame_score(square, piece);
+    Score eg_piece_value = psqt_endgame_score(square, piece);
+
+    mg_score += color == Color::White ? mg_piece_value : -mg_piece_value;
+    eg_score += color == Color::White ? eg_piece_value : -eg_piece_value;
 }
 
 void Board::clear_square(Square square) {
@@ -204,13 +216,21 @@ void Board::clear_square(Square square) {
     if (piece_there == Piece::None) return;
 
     u64 mask = ~get_mask(square);
+
+    Color color = color_of(piece_there);
     
 
     board_arr[static_cast<int>(square)] = Piece::None;
     piece_bb[static_cast<int>(ptype_of(piece_there))] &= mask;
-    color_bb[static_cast<int>(color_of(piece_there))] &= mask;
+    color_bb[static_cast<int>(color)] &= mask;
 
     zobrist ^= zobrist_psq(piece_there, square);
+
+    Score mg_piece_value = psqt_middlegame_score(square, piece_there);
+    Score eg_piece_value = psqt_endgame_score(square, piece_there);
+
+    mg_score -= color == Color::White ? mg_piece_value : -mg_piece_value;
+    eg_score -= color == Color::White ? eg_piece_value : -eg_piece_value;
 }
 
 void Board::make_move(Move move) {

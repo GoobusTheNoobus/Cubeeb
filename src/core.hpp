@@ -8,6 +8,8 @@ using u32 = uint32_t;
 using u16 = uint16_t;
 using u8 = uint8_t;
 
+using i16 = int16_t;
+
 enum class Square : u8 {
     A1, B1, C1, D1, E1, F1, G1, H1,
     A2, B2, C2, D2, E2, F2, G2, H2,
@@ -38,6 +40,12 @@ constexpr Square make_square(int r, int f) {
     return static_cast<Square>(r << 3 | f);
 }
 
+// The opposite square accross the sides
+constexpr Square inverted(Square sq) {
+    return static_cast<Square>(static_cast<int>(sq) ^ 56);
+}
+
+
 constexpr int file_of(Square sq) {
     return static_cast<int>(sq) & 7;
 } 
@@ -49,6 +57,7 @@ constexpr int rank_of(Square sq) {
 constexpr PieceType ptype_of(Piece piece) {
     return static_cast<PieceType>(static_cast<int>(piece) % 6);
 }
+
 
 constexpr Color color_of(Piece piece) {
     return static_cast<Color>(static_cast<int>(piece) / 6);

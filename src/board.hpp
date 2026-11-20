@@ -1,6 +1,7 @@
 #pragma once
 #include "core.hpp"
 #include "move.hpp"
+#include "score.hpp"
 #include <array>
 #include <ostream>
 #include <string>
@@ -40,7 +41,12 @@ struct Board {
     u8 fifty_move = 0;
     u8 castling = 0;
 
+    // Engine specific states
+
     u64 zobrist = 0;
+
+    Score mg_score = 0;
+    Score eg_score = 0;
 
     private:
     void place_piece(Square square, Piece piece);
