@@ -1,6 +1,7 @@
 #pragma once
+#include "bitboard.hpp"
 #include "core.hpp"
-#include <iostream>
+#include <array>
 
 using Score = i16;
 
@@ -194,4 +195,17 @@ inline Score psqt_endgame_score(Square square, Piece piece) {
         square = inverted(square);
 
     return EG_PSQT[static_cast<int>(ptype)][static_cast<int>(square)];
+}
+
+inline constexpr int PHASE_INC[] = { 0, 1, 1, 2, 4, 0};
+inline constexpr int MAX_PHASE = 24;
+
+inline int game_phase(const std::array<u64, 6> &piece_bb) {
+    int phase = 0;
+
+    for (int pt = 0; pt < 6; ++pt) {
+        phase += popcount(piece_bb[pt]) * PHASE_INC[pt];
+    }
+
+    return phase;
 }

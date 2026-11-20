@@ -27,6 +27,8 @@ struct Board {
     void make_move(Move move);
     bool try_move(Move move);
 
+    Score evaluate() const;
+
     // Board & pieces representation
 
     std::array<Piece, 64> board_arr;

@@ -369,3 +369,12 @@ bool Board::try_move(Move move) {
     // Ileegal: puts moving side in check
     return !is_in_check(opposite(side_to_move));
 }
+
+Score Board::evaluate() const {
+    int phase = game_phase(piece_bb);
+
+    Score material_score = (mg_score * phase + eg_score * (MAX_PHASE - phase)) / MAX_PHASE;
+    Score side_score = side_to_move == Color::White ? material_score : -material_score;
+
+    return side_score + TEMPO_BONUS;
+}

@@ -9,7 +9,7 @@
 void perft_divide(const Board &board, int depth) {
 
     MoveList moves;
-    MoveGenerator gen(moves.moves, moves.size);
+    MoveGenerator gen(moves.data, moves.size);
     gen.generate_moves(board);
 
     std::cout << "Performing performance test...\n";
@@ -57,7 +57,7 @@ u64 perft(const Board &board, int depth) {
     }
 
     MoveList moves;
-    MoveGenerator gen(moves.moves, moves.size);
+    MoveGenerator gen(moves.data, moves.size);
     gen.generate_moves(board);
 
     u64 nodes = 0;

@@ -40,9 +40,9 @@ struct Move {
 struct MoveList {
 
     MoveList() {}
-    Move operator [] (int i) const { return moves[i]; }
+    Move operator [] (int i) const { return data[i]; }
     
-    Move moves[256];
+    Move data[256];
     u8 size = 0;
 };
 
