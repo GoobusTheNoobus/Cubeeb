@@ -1,6 +1,7 @@
 #include "board.hpp"
 #include "bitboard.hpp"
 #include "core.hpp"
+#include "move.hpp"
 #include "zobrist.hpp"
 #include <cctype>
 #include <iostream>
@@ -174,7 +175,7 @@ bool Board::is_square_attacked(Square square, Color by) const {
 
 bool Board::is_in_check(Color color) const {
     int king_sq = get_lsb(piece_bb[static_cast<int>(PieceType::King)] & color_bb[static_cast<int>(color)]);
-    return is_square_attacked(static_cast<Square>(king_sq), color);
+    return is_square_attacked(static_cast<Square>(king_sq), opposite(color));
 }
 
 bool Board::is_in_check() const {
@@ -210,4 +211,141 @@ void Board::clear_square(Square square) {
     color_bb[static_cast<int>(color_of(piece_there))] &= mask;
 
     zobrist ^= zobrist_psq(piece_there, square);
+}
+
+void Board::make_move(Move move) {
+
+    Square from = move.from();
+    Square to = move.to();
+    MoveKind kind = move.kind();
+
+    Color us = side_to_move;
+
+    Piece piece_moving = board_arr[static_cast<int>(from)];
+    Piece piece_captured = kind == MoveKind::EnPassant ? make_piece(PieceType::Pawn, opposite(side_to_move)) : board_arr[static_cast<int>(to)];
+
+
+    // We reset ep_square because almost always a move resets it. If it doesn't (double pawn push), it will restore.
+
+    zobrist ^= zobrist_ep(ep_square);
+    ep_square = Square::None;
+
+    // Switch turn
+    side_to_move = opposite(side_to_move);
+    zobrist ^= zobrist_black_move();
+
+    switch (kind) {
+        case MoveKind::Normal: {
+            clear_square(from);
+            clear_square(to);
+            place_piece(to, piece_moving);
+
+            break;
+        }
+
+        case MoveKind::DoublePawnPush: {
+            clear_square(from);
+            place_piece(to, piece_moving);
+
+            ep_square = static_cast<Square>(static_cast<int>(to) - (us == Color::White ? 8 : -8));
+            zobrist ^= zobrist_ep(ep_square);
+            break;
+        }
+
+        case MoveKind::EnPassant: {
+            clear_square(from);
+            place_piece(to, piece_moving);
+
+            // The captured pawn's square is actually behind
+            Square capture_square = static_cast<Square>(static_cast<int>(to) - (us == Color::White ? 8 : -8));
+
+            clear_square(capture_square);
+
+            break;
+        }
+
+        case MoveKind::CastlingShort:
+        case MoveKind::CastlingLong: {
+
+            bool is_castling_long = kind == MoveKind::CastlingLong;
+            bool is_white = us == Color::White;
+            
+            Square rook_from = is_castling_long ? 
+                (is_white ? Square::A1 : Square::A8) : (is_white ? Square::H1 : Square::H8);
+
+            Square rook_to = is_castling_long ?
+                (is_white ? Square::D1 : Square::D8) : (is_white ? Square::F1 : Square::F8);
+
+            Piece rook = make_piece(PieceType::Rook, us);
+
+            clear_square(from);
+            clear_square(rook_from);
+
+            place_piece(to, piece_moving);
+            place_piece(rook_to, rook );
+
+            break;
+        }
+
+        // Assume promotion
+        default: {
+            PieceType promoted_ptype = 
+                static_cast<PieceType>((static_cast<int>(kind) - static_cast<int>(MoveKind::PromoKnight)) + static_cast<int>(PieceType::Knight));
+            Piece promoted_piece = make_piece(promoted_ptype, us);
+
+            clear_square(from);
+            clear_square(to);
+            place_piece(to, promoted_piece);
+
+            break;
+        }
+    }
+
+    // Handle castling rights
+    // Use bit tricks
+    // Basically, castling rights can be removed in 2 different ways:
+    // 1. Rook move
+    // 2. Rook get captured
+    // 3. King move
+    // In the following section, we handle the first 2 by using an array of masks
+
+    constexpr u8 MASKS[64] = {
+        13, 15, 15, 15, 15, 15, 15, 14,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+         7, 15, 15, 15, 15, 15, 15, 11,
+    };
+
+    zobrist ^= zobrist_castling(castling);
+
+    castling &= MASKS[static_cast<int>(from)];
+    castling &= MASKS[static_cast<int>(to)];
+
+    // Now we handle king moves
+    if (from == Square::E1) {
+        castling &= ~CASTLING_WK;
+        castling &= ~CASTLING_WQ;
+    }
+
+    else if (from == Square::E8) {
+        castling &= ~CASTLING_BK;
+        castling &= ~CASTLING_BQ;
+    }
+
+    zobrist ^= zobrist_castling(castling);
+
+    if (piece_captured == Piece::None && ptype_of(piece_moving) != PieceType::Pawn) {
+        ++fifty_move;
+    } else fifty_move = 0;
+}
+
+bool Board::try_move(Move move) {
+    make_move(move);
+
+    // Ileegal: puts moving side in check
+    return !is_in_check(opposite(side_to_move));
 }

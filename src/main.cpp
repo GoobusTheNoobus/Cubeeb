@@ -1,7 +1,6 @@
 #include "bitboard.hpp"
 #include "board.hpp"
-#include "move.hpp"
-#include "movegen.hpp"
+#include "perft.hpp"
 #include "zobrist.hpp"
 #include <iostream>
 
@@ -10,12 +9,11 @@ int main() {
     init_attacks();
     init_zobrist();
 
-    Board board;
-    std::cout << board;
-    
-    MoveList list;
-    MoveGenerator gen(list.moves, list.size);
-    gen.generate_moves(board);
+    Board board1;
+    Board board2("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
+    Board board3("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
 
-    std::cout << list;
+    perft_divide(board1, 7);
+    perft_divide(board2, 6);
+    perft_divide(board3, 6);
 }

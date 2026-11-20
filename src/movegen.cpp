@@ -3,7 +3,6 @@
 #include "board.hpp"
 #include "core.hpp"
 #include "move.hpp"
-#include <iostream>
 
 void MoveGenerator::generate_moves(const Board &board) {
     generate_pawn_moves(board);

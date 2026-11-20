@@ -1,5 +1,6 @@
 #pragma once
 #include "core.hpp"
+#include "move.hpp"
 #include <array>
 #include <ostream>
 #include <string>
@@ -21,6 +22,9 @@ struct Board {
     bool is_square_attacked(Square square, Color color) const;
     bool is_in_check(Color color) const;
     bool is_in_check() const;
+
+    void make_move(Move move);
+    bool try_move(Move move);
 
     // Board & pieces representation
 
