@@ -37,7 +37,7 @@ def main():
     engine_old = sprt_dir / "engine-old"
     engine_new = sprt_dir / "engine-new"
     
-    print(f"\n=== Step 1: Building old ({OLD_REF}) ===")
+    print(f"\n============== Step 1: Building old ({OLD_REF}) ==============")
 
     with tempfile.TemporaryDirectory() as temp_dir:
 
@@ -47,11 +47,11 @@ def main():
         run_cmd(["git", "checkout", OLD_REF], cwd=temp_repo)
         build_engine(temp_repo, engine_old)
         
-    print(f"\n=== Step 2: Building Current Patch (New) ===")
+    print(f"\n============== Step 2: Building Current Patch (New) ==============")
 
     build_engine(repo_root, engine_new)
     
-    print(f"\n=== Step 3: Starting SPRT Test ===")
+    print(f"\n============== Step 3: Starting SPRT Test ==============")
 
     fastchess_cmd = [
         FASTCHESS,

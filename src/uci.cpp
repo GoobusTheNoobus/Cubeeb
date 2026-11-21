@@ -172,6 +172,10 @@ void start_uci() {
             continue;
         }
 
+        if (token == "ucinewgame") {
+            // Doesn't do much yet
+        }
+
         if (token == "go") {
             process_go_command(iss);
             continue;
