@@ -3,3 +3,8 @@ build-debug/
 
 # Compile commands generated using bear
 compile_commands.json
+config.json
+
+cubeeb
+cubeeb-old
+cubeeb-new

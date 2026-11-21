@@ -54,3 +54,4 @@ u64 get_rook_attack(Square square, u64 occ);
 inline u64 get_queen_attack(Square square, u64 occ) {
     return get_bishop_attack(square, occ) | get_rook_attack(square, occ);
 }
+

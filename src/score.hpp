@@ -2,6 +2,9 @@
 #include "bitboard.hpp"
 #include "core.hpp"
 #include <array>
+#include <cmath>
+#include <cstdlib>
+#include <string>
 
 using Score = i16;
 
@@ -10,6 +13,20 @@ inline constexpr Score DRAW_SCORE = 0, MATE_SCORE = 20000, INF_SCORE = 20001, MA
 inline constexpr Score MG_VALUES[6] = { 82, 337, 365, 477, 1025,  0 };
 inline constexpr Score EG_VALUES[6] = { 94, 281, 297, 512,  936,  0 };
 inline constexpr Score TEMPO_BONUS = 32;
+
+inline std::string score_to_string(Score score) {
+
+    // Normal centipawn score
+    if (std::abs(score) <= MAX_CENTIPAWN)
+        return "cp " + std::to_string(score);
+
+    int mateDist = MATE_SCORE - std::abs(score);
+
+    mateDist = score > 0 ? mateDist : -mateDist;
+    mateDist = (int)std::ceil(mateDist / 2.0);
+
+    return "mate " + std::to_string(mateDist);
+}
 
 
 inline Score MG_PAWN[64] = {

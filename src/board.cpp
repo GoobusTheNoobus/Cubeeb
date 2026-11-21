@@ -2,10 +2,12 @@
 #include "bitboard.hpp"
 #include "core.hpp"
 #include "move.hpp"
+#include "movegen.hpp"
 #include "score.hpp"
 #include "zobrist.hpp"
 #include <cctype>
 #include <iostream>
+#include <optional>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -377,4 +379,23 @@ Score Board::evaluate() const {
     Score side_score = side_to_move == Color::White ? material_score : -material_score;
 
     return side_score + TEMPO_BONUS;
+}
+
+std::optional<Move> Board::parse_move(const std::string &str) const {
+    MoveList moves;
+    MoveGenerator gen(moves.data, moves.size);
+    gen.generate_moves(*this);
+
+    for (int i = 0; i < moves.size; ++i) {
+        Move move = moves[i];
+
+        std::ostringstream oss;
+        oss << move;
+
+        if (oss.str() == str) 
+            return move;
+
+    }
+
+    return std::nullopt;
 }

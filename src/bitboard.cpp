@@ -334,3 +334,5 @@ u64 get_bishop_attack(Square square, u64 occ) {
 u64 get_rook_attack(Square square, u64 occ) {
     return rook_attacks[static_cast<int>(square)][get_rook_hash(square, occ)];
 }
+
+

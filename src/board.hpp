@@ -3,6 +3,7 @@
 #include "move.hpp"
 #include "score.hpp"
 #include <array>
+#include <optional>
 #include <ostream>
 #include <string>
 
@@ -26,6 +27,8 @@ struct Board {
 
     void make_move(Move move);
     bool try_move(Move move);
+
+    std::optional<Move> parse_move(const std::string &str) const;
 
     Score evaluate() const;
 

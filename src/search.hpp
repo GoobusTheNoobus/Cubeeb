@@ -2,7 +2,10 @@
 #include "board.hpp"
 #include "move.hpp"
 
-void iterative_deepening(const Board &board, int depth);
+namespace Search {
+
+void iterative_deepening(const Board &board, int depth, int max_ms);
+void stop();
 
 struct SearchInfo {
     u64 nodes = 0;
@@ -16,3 +19,5 @@ enum class NodeKind {
 
 template <NodeKind kind>
 Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score alpha, Score beta);
+
+}
