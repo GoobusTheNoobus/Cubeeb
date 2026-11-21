@@ -13,6 +13,7 @@ namespace {
 
 // We keep a board atate
 Board board;
+RepetitionStack rep_stack;
 
 // We keep the UCI loop on the main thread while using a search thread
 std::thread search_thread;
@@ -64,13 +65,15 @@ void process_go_command(std::istringstream &iss) {
     }
 
     search_thread = std::thread([time, depth](){
-        Search::iterative_deepening(board, depth, time);
+        Search::iterative_deepening(board, depth, time, rep_stack);
     });
 }
 
 void process_position_command(std::istringstream &iss) {
 
     stop_thread();
+
+    rep_stack.ply = 0;
 
     std::string token;
     iss >> token;
@@ -110,6 +113,7 @@ void process_position_command(std::istringstream &iss) {
             return;
         }
 
+        rep_stack.push(board.zobrist);
         board.make_move(*opt_move);
     }
 }
@@ -135,6 +139,18 @@ void start_uci() {
 
         if (token == "quit") {
             break;
+        }
+
+        if (token == "board") {
+            std::cout << board << std::endl;
+        }
+
+        if (token == "rep") {
+            std::cout << "Zobrist hash stack: \n" << std::hex;
+            for (int i = rep_stack.ply - 1; i >= 0; --i) {
+                std::cout << "0x" << rep_stack.data[i] << '\n';
+            }
+            std::cout << std::dec;
         }
 
         if (token == "stop") {

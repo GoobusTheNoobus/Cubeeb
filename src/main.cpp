@@ -1,7 +1,5 @@
 #include "bitboard.hpp"
-#include "board.hpp"
 #include "score.hpp"
-#include "search.hpp"
 #include "uci.hpp"
 #include "zobrist.hpp"
 #include <iostream>

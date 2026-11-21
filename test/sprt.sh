@@ -2,8 +2,8 @@
 set -euo pipefail
 
 fastchess \
-    -engine cmd=./build/cubeeb name="Cubeeb new" \
-    -engine cmd=./build/cubeeb name="Cubeeb old" \
+    -engine cmd=./cubeeb-new name="Cubeeb new" \
+    -engine cmd=./cubeeb-old name="Cubeeb old" \
     -each tc=10+0.1 \
     -rounds 100000 \
     -concurrency 10 \

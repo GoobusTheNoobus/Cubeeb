@@ -59,3 +59,18 @@ struct Board {
 };  
 
 std::ostream &operator << (std::ostream &os, const Board &board);
+
+struct RepetitionStack {
+    u64 data[1000];
+    int ply = 0;
+
+    void push(u64 hash) {
+        data[ply++] = hash;
+    }
+
+    void pop() {
+        --ply;
+    }
+
+    bool is_repetition(u64 cur) const;
+};

@@ -31,7 +31,7 @@ bool is_timeout() {
 
 void stop() { Timer::stop = true; }
 
-void iterative_deepening(const Board &board, int depth, int max_ms) {
+void iterative_deepening(const Board &board, int depth, int max_ms, const RepetitionStack &stack) {
 
     if (depth == 0) {
         std::cout << "bestmove [none]\n";
@@ -42,7 +42,7 @@ void iterative_deepening(const Board &board, int depth, int max_ms) {
     Timer::start = std::chrono::steady_clock::now();
     Timer::stop = false;
 
-    SearchInfo info;
+    SearchInfo info { stack, 0, Move() };
     Move best_move;
 
     for (int cur_depth = 1; cur_depth <= depth; ++cur_depth) {
@@ -77,6 +77,12 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         return 0;
     }
 
+    // We check for 3-fold repetition, but only if we are not at a root node, since then it would
+    // not even search a single depth
+    if (info.stack.is_repetition(board.zobrist) && kind != NodeKind::Root) {
+        return DRAW_SCORE;
+    }
+
     if (depth == 0) {
         return board.evaluate();
     }
@@ -87,6 +93,8 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
 
     Score best_score = -INF_SCORE;
     Move best_move;
+
+    info.stack.push(board.zobrist);
 
     int move_count = 0;
 
@@ -118,6 +126,8 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
             break;
         }
     }
+
+    info.stack.pop();
 
     if (move_count == 0) {
         if (board.is_in_check()) {

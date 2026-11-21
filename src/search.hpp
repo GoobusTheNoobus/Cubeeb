@@ -4,10 +4,11 @@
 
 namespace Search {
 
-void iterative_deepening(const Board &board, int depth, int max_ms);
+void iterative_deepening(const Board &board, int depth, int max_ms, const RepetitionStack &stack);
 void stop();
 
 struct SearchInfo {
+    RepetitionStack stack;
     u64 nodes = 0;
     Move best_move;
 };

@@ -12,6 +12,23 @@
 #include <sstream>
 #include <string>
 
+bool RepetitionStack::is_repetition(u64 cur) const {
+
+    int count = 0;
+
+    for (int i = ply - 2; i >= 0; i -= 2) {
+        if (data[i] == cur) {
+            ++count;
+        }
+
+        if (count == 2) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 Board::Board() {
 }
 
