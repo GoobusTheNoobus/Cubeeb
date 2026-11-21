@@ -90,6 +90,8 @@ void process_position_command(std::istringstream &iss) {
             fen += token + " ";
         }
 
+        board.parse_fen(fen);
+
         if (iss.eof()) {
             return;
         }
@@ -122,6 +124,7 @@ void start_uci() {
         std::string input;
         
         if (!std::getline(std::cin,input)) {
+            stop_thread();
             break;
         }
 
@@ -155,7 +158,6 @@ void start_uci() {
 
         if (token == "go") {
             process_go_command(iss);
-            Search::stop();
             continue;
         }
 
@@ -163,4 +165,6 @@ void start_uci() {
             process_position_command(iss);
         }
     }
+
+    stop_thread();
 }

@@ -43,6 +43,7 @@ void iterative_deepening(const Board &board, int depth, int max_ms) {
     Timer::stop = false;
 
     SearchInfo info;
+    Move best_move;
 
     for (int cur_depth = 1; cur_depth <= depth; ++cur_depth) {
 
@@ -56,14 +57,16 @@ void iterative_deepening(const Board &board, int depth, int max_ms) {
             break;
         }
 
+        best_move = info.best_move;
+
         int elapsed = Timer::elapsed();
 
-        std::cout << "info depth " << cur_depth << " score " << score_to_string(score) << " pv " << info.best_move 
+        std::cout << "info depth " << cur_depth << " score " << score_to_string(score) << " pv " << best_move 
             << " nodes " << info.nodes << " time " << elapsed << " nps " << (info.nodes * 1000 / elapsed)
             << std::endl;
     }
 
-    std::cout << "bestmove " << info.best_move << '\n';
+    std::cout << "bestmove " << best_move << std::endl;
 }
 
 template <NodeKind kind>
