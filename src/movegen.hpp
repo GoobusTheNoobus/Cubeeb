@@ -4,7 +4,7 @@
 
 class MoveGenerator {
     public:
-    MoveGenerator(Move arr[], u8 &size) : arr(arr), size(size) {}
+    MoveGenerator(Move arr[], int &size) : arr(arr), size(size) {}
     void generate_moves(const Board &board);
     
     private:
@@ -12,7 +12,7 @@ class MoveGenerator {
     // We store the pointer to the move array and size reference to avoid passing it 
     // through every function
     Move *arr;
-    u8 &size;
+    int &size;
 
     void generate_pawn_moves(const Board &board);
     void generate_knight_moves(const Board &board);

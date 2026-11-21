@@ -37,13 +37,13 @@ struct Move {
     u16 data;    
 };
 
-struct MoveList {
+struct PlainMoveList {
 
-    MoveList() {}
+    PlainMoveList() {}
     Move operator [] (int i) const { return data[i]; }
     
     Move data[256];
-    u8 size = 0;
+    int size = 0;
 };
 
 inline std::ostream &operator << (std::ostream &os, const Move &move) {
@@ -60,11 +60,11 @@ inline std::ostream &operator << (std::ostream &os, const Move &move) {
     return os;
 }
 
-inline std::ostream &operator << (std::ostream &os, const MoveList &moves) {
+inline std::ostream &operator << (std::ostream &os, const PlainMoveList &moves) {
     for (int i = 0; i < moves.size; ++i) {
         os << moves[i] << '\n';
     }
 
-    os << "\nSize: " << static_cast<int>(moves.size) << "\n\n";
+    os << "\nSize: " << moves.size << "\n\n";
     return os;
 }

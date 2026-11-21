@@ -103,7 +103,7 @@ void process_position_command(std::istringstream &iss) {
     // Parse moves
     while (iss >> token) {
 
-        MoveList moves;
+        PlainMoveList moves;
         MoveGenerator gen(moves.data, moves.size);
         gen.generate_moves(board);
 

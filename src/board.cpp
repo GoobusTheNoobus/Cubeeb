@@ -399,12 +399,16 @@ Score Board::evaluate() const {
 }
 
 std::optional<Move> Board::parse_move(const std::string &str) const {
-    MoveList moves;
+    PlainMoveList moves;
     MoveGenerator gen(moves.data, moves.size);
     gen.generate_moves(*this);
 
     for (int i = 0; i < moves.size; ++i) {
         Move move = moves[i];
+
+        Board test_board = *this;
+        if (!test_board.try_move(move))
+            continue;
 
         std::ostringstream oss;
         oss << move;

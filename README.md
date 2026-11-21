@@ -17,7 +17,7 @@ Every patch that could potentially change engine performance should be tested wi
 There is a script, `./test/sprt.py` for this. It clones the current Github source code
 into a temporary folder, builds it, and moves it to the sprt/ folder. It then builds 
 the current local version as the new version. It will then run Fastchess (Cutechess but better) 
-between the 2 engines. 
+between the 2 engines. It is written in python though, so you will need that too.
 
 ## UCI
 Cubeeb supports the [Universal Chess Interface](https://official-stockfish.github.io/docs/stockfish-wiki/UCI-Protocol-and-Stockfish-Commands.html), 
@@ -46,4 +46,9 @@ There are also unofficial commands for debugging purposes:
 * `rep` - prints the zobrist stack of the board history
 
 ## Features
-* More to come! :D
+* Bitboards + mailbox board representation
+* Bitboards base move/attack generation
+* Alpha-Beta Negamax 
+* Iterative Deepening
+* Large set of UCI commands + extra debug commands (mentioned above)
+* Basic MVV->LVA Move Ordering (+303.43 Elo)

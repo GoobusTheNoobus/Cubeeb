@@ -8,7 +8,7 @@
 
 void perft_divide(const Board &board, int depth) {
 
-    MoveList moves;
+    PlainMoveList moves;
     MoveGenerator gen(moves.data, moves.size);
     gen.generate_moves(board);
 
@@ -56,7 +56,7 @@ u64 perft(const Board &board, int depth) {
         return 1;
     }
 
-    MoveList moves;
+    PlainMoveList moves;
     MoveGenerator gen(moves.data, moves.size);
     gen.generate_moves(board);
 

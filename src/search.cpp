@@ -1,12 +1,13 @@
 #include "search.hpp"
 #include "move.hpp"
+#include "ordering.hpp"
 #include "score.hpp"
-#include "movegen.hpp"
 
 #include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <iostream>
+#include <optional>
 
 namespace Search {
 
@@ -87,9 +88,7 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         return board.evaluate();
     }
 
-    MoveList moves;
-    MoveGenerator gen(moves.data, moves.size);
-    gen.generate_moves(board);
+    OrderingMoveList moves(board);
 
     Score best_score = -INF_SCORE;
     Move best_move;
@@ -98,9 +97,9 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
 
     int move_count = 0;
 
-    for (int i = 0; i < moves.size; ++i) {
-
-        Move move = moves[i];
+    std::optional<Move> optmove;
+    while ((optmove = moves.next())) {
+        Move move = *optmove;
 
         Board child = board;
         if (!child.try_move(move)) {
