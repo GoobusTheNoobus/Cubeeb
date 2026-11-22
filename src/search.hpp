@@ -15,7 +15,8 @@ struct SearchInfo {
 
 enum class NodeKind {
     Root,
-    NotRoot,
+    NotPrincipleVariation,
+    PrincipleVariation,
 };
 
 template <NodeKind kind>

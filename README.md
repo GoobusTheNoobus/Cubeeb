@@ -63,3 +63,4 @@ There are also unofficial commands for debugging purposes:
 * Basic MVV->LVA Move Ordering 
 * Quiescence Search
 * Transposition Table + TT Move Ordering
+* Principle Variation Search

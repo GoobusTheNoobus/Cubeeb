@@ -72,9 +72,9 @@ void iterative_deepening(const Board &board, int depth, int max_ms, const Repeti
 
         int elapsed = Timer::elapsed();
 
-        std::cout << "info depth " << cur_depth << " score " << score_to_string(score) << " pv " << best_move 
+        std::cout << "info depth " << cur_depth << " score " << score_to_string(score)
             << " nodes " << info.nodes << " time " << elapsed << " nps " << (info.nodes * 1000 / elapsed)
-            << std::endl;
+            << " pv " << best_move << std::endl;
     }
 
     std::cout << "bestmove " << best_move << std::endl;
@@ -114,7 +114,7 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
             tt_score += ply;
         }
 
-        if (kind == NodeKind::NotRoot && tt_probe->type == TranspositionTable::EntryType::Exact) {
+        if (kind == NodeKind::NotPrincipleVariation && tt_probe->type == TranspositionTable::EntryType::Exact) {
             return tt_score;
         }
 
@@ -126,7 +126,7 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
             beta = std::min(beta, tt_score);
         }
 
-        if (kind == NodeKind::NotRoot && alpha >= beta)
+        if (kind == NodeKind::NotPrincipleVariation && alpha >= beta)
             return tt_score;
     }
 
@@ -153,7 +153,14 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
 
         ++move_count;
 
-        Score score = -negamax<NodeKind::NotRoot>(info, child, depth - 1, ply + 1, -beta, -alpha);
+        Score score;
+        if (kind == NodeKind::NotPrincipleVariation || move_count > 1) {
+            score = -negamax<NodeKind::NotPrincipleVariation>
+                (info, child, depth - 1, ply + 1, -alpha - 1, -alpha);
+        } 
+
+        if (kind != NodeKind::NotPrincipleVariation && (move_count == 1 || score > alpha))
+            score = -negamax<NodeKind::PrincipleVariation>(info, child, depth - 1, ply + 1, -beta, -alpha);
 
         if (Timer::is_timeout()) {
             return 0;
