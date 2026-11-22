@@ -64,3 +64,4 @@ There are also unofficial commands for debugging purposes:
 * Quiescence Search
 * Transposition Table + TT Move Ordering
 * Principle Variation Search
+* Reversed Futility Pruning

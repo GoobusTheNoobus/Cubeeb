@@ -130,6 +130,14 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
             return tt_score;
     }
 
+    // Reverse Futility Pruning
+    Score eval = board.evaluate();
+    Score margin = 150 * depth;
+    if (kind == NodeKind::NotPrincipleVariation && !board.is_in_check() && 
+        eval >= beta + margin) {
+        return eval;
+    }
+
     // Store a copy for TT flag 
     Score orig_alpha = alpha;
 
