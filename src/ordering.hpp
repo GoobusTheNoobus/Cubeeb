@@ -5,10 +5,10 @@
 #include <optional>
 
 struct OrderingMoveList {
-    OrderingMoveList(const Board &board) : board(board) {
+    OrderingMoveList(const Board &board, Move tt_move) : board(board) {
         MoveGenerator gen(moves, size);
         gen.generate_moves(board);
-        score_moves();
+        score_moves(tt_move);
     }
 
     std::optional<Move> next();
@@ -25,6 +25,6 @@ struct OrderingMoveList {
     int cur = 0;
 
     private:
-    void score_moves();
-    int score_of(Move move) const;
+    void score_moves(Move tt_move);
+    int score_of(Move move, Move tt_move) const;
 };

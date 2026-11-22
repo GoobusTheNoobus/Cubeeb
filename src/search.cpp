@@ -3,6 +3,7 @@
 #include "move.hpp"
 #include "ordering.hpp"
 #include "score.hpp"
+#include "transposition.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -11,6 +12,8 @@
 #include <optional>
 
 namespace Search {
+
+TranspositionTable tt;
 
 namespace Timer {
 
@@ -96,7 +99,41 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         return quiescence(info, board, ply * 2 + 2, ply + 1, alpha, beta);
     }
 
-    OrderingMoveList moves(board);
+
+    auto tt_probe = tt.probe(board.zobrist);
+    Move tt_ordering_move = tt_probe ? tt_probe->move : Move();
+    if (tt_probe && tt_probe->depth >= depth) {
+        Score tt_score = tt_probe->score;
+
+        // Correct tt score if it is mate
+        if (tt_score > MAX_CENTIPAWN) {
+            tt_score -= ply;
+        }
+
+        else if (tt_score <= -MAX_CENTIPAWN) {
+            tt_score += ply;
+        }
+
+        if (kind == NodeKind::NotRoot && tt_probe->type == TranspositionTable::EntryType::Exact) {
+            return tt_score;
+        }
+
+        else if (tt_probe->type == TranspositionTable::EntryType::Lower) {
+            alpha = std::max(alpha, tt_score);
+        }
+
+        else if (tt_probe->type == TranspositionTable::EntryType::Upper) {
+            beta = std::min(beta, tt_score);
+        }
+
+        if (kind == NodeKind::NotRoot && alpha >= beta)
+            return tt_score;
+    }
+
+    // Store a copy for TT flag 
+    Score orig_alpha = alpha;
+
+    OrderingMoveList moves(board, tt_ordering_move);
 
     Score best_score = -INF_SCORE;
     Move best_move;
@@ -148,6 +185,26 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         info.best_move = best_move;
     }
 
+
+
+    TranspositionTable::EntryType store_flag;
+    if (best_score <= orig_alpha) store_flag = TranspositionTable::EntryType::Upper;
+    else if (best_score >= beta) store_flag = TranspositionTable::EntryType::Lower;
+    else store_flag = TranspositionTable::EntryType::Exact;
+
+
+    Score store_score = best_score;
+    if (best_score > MAX_CENTIPAWN) {
+        store_score += ply;
+    }
+
+    if (best_score <= -MAX_CENTIPAWN) {
+        store_score -= ply;
+    }
+
+    tt.write({board.zobrist, depth, best_move, store_score, 
+        store_flag});
+
     return best_score;
 }
 
@@ -171,7 +228,7 @@ Score quiescence(SearchInfo &info, const Board &board, int depth, int ply, Score
     if (best_eval > alpha)
         alpha = best_eval;
 
-    OrderingMoveList moves(board);
+    OrderingMoveList moves(board, Move());
 
     info.stack.push(board.zobrist);
 

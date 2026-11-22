@@ -3,9 +3,9 @@
 #include "move.hpp"
 #include <optional>
 
-void OrderingMoveList::score_moves() {
+void OrderingMoveList::score_moves(Move tt_move) {
     for (int i = 0; i < size; ++i) {
-        scores[i] = score_of(moves[i]);
+        scores[i] = score_of(moves[i], tt_move);
     }
 }
 
@@ -19,7 +19,11 @@ constexpr int PROMO_VALUES[] = {
     200,        // knights
 };
 
-int OrderingMoveList::score_of(Move move) const {
+int OrderingMoveList::score_of(Move move, Move tt_move) const {
+
+    if (tt_move.get_data() == move.get_data()) {
+        return 100'000;
+    }
 
     MoveKind kind = move.kind();
 
@@ -45,26 +49,6 @@ int OrderingMoveList::score_of(Move move) const {
 }
 
 std::optional<Move> OrderingMoveList::next() {
-
-    /*
-    if (i >= size_)
-        return false;
-
-    int highestScoreIndex = i;
-    int highestScore = scores[i];
-
-    for (int j = i; j < size_; ++j) {
-        if (scores[j] > highestScore) {
-            highestScore = scores[j];
-            highestScoreIndex = j;
-        }
-    }
-
-    std::swap(moves[i], moves[highestScoreIndex]);
-    std::swap(scores[i], scores[highestScoreIndex]);
-
-    return true;
-    */
 
     if (cur >= size) {
         return std::nullopt;

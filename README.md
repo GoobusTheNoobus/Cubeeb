@@ -60,3 +60,4 @@ There are also unofficial commands for debugging purposes:
 * Large set of UCI commands + extra debug commands (mentioned above)
 * Basic MVV->LVA Move Ordering 
 * Quiescence Search
+* Transposition Table + TT Move Ordering

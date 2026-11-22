@@ -33,6 +33,8 @@ struct Move {
     Square to() const { return static_cast<Square>((data >> 6) & 0x3F); }
     MoveKind kind() const { return static_cast<MoveKind>((data >> 12) & 0xF); }
 
+    u16 get_data() const { return data;}
+
     private:
     u16 data;    
 };
