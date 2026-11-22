@@ -1,11 +1,12 @@
 #include "ordering.hpp"
 #include "core.hpp"
 #include "move.hpp"
+#include "search.hpp"
 #include <optional>
 
-void OrderingMoveList::score_moves(Move tt_move) {
+void OrderingMoveList::score_moves(Move tt_move, const History &history) {
     for (int i = 0; i < size; ++i) {
-        scores[i] = score_of(moves[i], tt_move);
+        scores[i] = score_of(moves[i], tt_move, history);
     }
 }
 
@@ -19,7 +20,7 @@ constexpr int PROMO_VALUES[] = {
     200,        // knights
 };
 
-int OrderingMoveList::score_of(Move move, Move tt_move) const {
+int OrderingMoveList::score_of(Move move, Move tt_move, const History &history) const {
 
     if (tt_move.get_data() == move.get_data()) {
         return 100'000;
@@ -45,7 +46,8 @@ int OrderingMoveList::score_of(Move move, Move tt_move) const {
         return PROMO_VALUES[static_cast<int>(kind) - static_cast<int>(MoveKind::PromoQueen)];
     }
 
-    return 0;
+    return history.data[static_cast<int>(board.side_to_move)]
+        [static_cast<int>(move.from())][static_cast<int>(move.to())];
 }
 
 std::optional<Move> OrderingMoveList::next() {

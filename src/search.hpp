@@ -1,8 +1,13 @@
 #pragma once
 #include "board.hpp"
 #include "move.hpp"
+#include "transposition.hpp"
+#include "history.hpp"
 
 namespace Search {
+
+inline TranspositionTable tt;
+inline History history;
 
 void iterative_deepening(const Board &board, int depth, int max_ms, const RepetitionStack &stack);
 void stop();

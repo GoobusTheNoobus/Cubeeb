@@ -25,7 +25,8 @@ struct TranspositionTable {
     const Entry *probe(u64 key) const;
     void write(Entry entry);
 
-    int hashfull();
+    int hashfull() const;
+    void clear();
 
     private:
     std::vector<Entry> data;

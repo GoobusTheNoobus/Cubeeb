@@ -173,7 +173,8 @@ void start_uci() {
         }
 
         if (token == "ucinewgame") {
-            // Doesn't do much yet
+            Search::tt.clear();
+            Search::history.clear();
         }
 
         if (token == "go") {

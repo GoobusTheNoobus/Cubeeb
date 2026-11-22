@@ -1,4 +1,5 @@
 #include "transposition.hpp"
+#include <algorithm>
 #include <cstddef>
 
 TranspositionTable::TranspositionTable() {
@@ -22,4 +23,18 @@ void TranspositionTable::write(Entry entry) {
     if (entry.depth >= old.depth || entry.key != old.key) {
         old = std::move(entry);
     }
+}
+
+int TranspositionTable::hashfull() const {
+    int c = 0;
+    for (int i = 0; i < 1000; ++i) {
+        if (data[i].depth > 0) 
+            ++c;
+    }
+
+    return c;
+}
+
+void TranspositionTable::clear() {
+    std::fill(data.data(), data.data() + data.size(), Entry{});
 }

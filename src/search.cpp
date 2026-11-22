@@ -13,8 +13,6 @@
 
 namespace Search {
 
-TranspositionTable tt;
-
 namespace Timer {
 
 int max_ms;
@@ -72,9 +70,10 @@ void iterative_deepening(const Board &board, int depth, int max_ms, const Repeti
 
         int elapsed = Timer::elapsed();
 
-        std::cout << "info depth " << cur_depth << " score " << score_to_string(score)
+        std::cout 
+            << "info depth " << cur_depth << " score " << score_to_string(score)
             << " nodes " << info.nodes << " time " << elapsed << " nps " << (info.nodes * 1000 / elapsed)
-            << " pv " << best_move << std::endl;
+            << " hashfull " << tt.hashfull() << " pv " << best_move << std::endl;
     }
 
     std::cout << "bestmove " << best_move << std::endl;
@@ -161,7 +160,7 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
     // Store a copy for TT flag 
     Score orig_alpha = alpha;
 
-    OrderingMoveList moves(board, tt_ordering_move);
+    OrderingMoveList moves(board, tt_ordering_move, history);
 
     Score best_score = -INF_SCORE;
     Move best_move;
@@ -215,6 +214,23 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         alpha = std::max(alpha, score);
 
         if (alpha >= beta) {
+
+            if (!is_noisy(board, move))
+                history.reward(board.side_to_move, move.from(), move.to(), depth);
+
+            for (int i = 0; i < moves.cur - 1; ++i) {
+                
+                Move move = moves.moves[i];
+                if (!is_noisy(board, move)) {
+                    Board test_board = board;
+                    if (!test_board.try_move(move))
+                        continue;
+
+                    history.penalize(board.side_to_move, move.from(), move.to(), depth);
+                } 
+                    
+            }
+
             break;
         }
     }
@@ -276,7 +292,7 @@ Score quiescence(SearchInfo &info, const Board &board, int depth, int ply, Score
     if (best_eval > alpha)
         alpha = best_eval;
 
-    OrderingMoveList moves(board, Move());
+    OrderingMoveList moves(board, Move(), history);
 
     info.stack.push(board.zobrist);
 
