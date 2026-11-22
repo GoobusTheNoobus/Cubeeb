@@ -10,8 +10,14 @@ FASTCHESS = "fastchess"    # Path to fastchess executable if not in PATH
 # ---------------------
 
 
+RED = '\033[31m'
+BLUE = '\033[34m'
+
+RESET = '\033[0m'
+BOLD = '\033[1m'
+
 def run_cmd(cmd, cwd=None):
-    print(f"-> Running: {' '.join(cmd)}")
+    print(f"-> Running: {BLUE}{BOLD}{' '.join(cmd)}{RESET}")
     subprocess.run(cmd, cwd=cwd, check=True)
 
 
@@ -60,6 +66,7 @@ def main():
         "-each", "tc=10+0.1",
         "-repeat", "-games", "10000",
         "-sprt", "elo0=0", "elo1=10", "alpha=0.05", "beta=0.05", "model=normalized",
+        "-openings", "file=8moves_v3.pgn", "order=random", "format=pgn",
         "-concurrency", "10"
     ]
     

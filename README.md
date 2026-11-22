@@ -19,6 +19,13 @@ into a temporary folder, builds it, and moves it to the sprt/ folder. It then bu
 the current local version as the new version. It will then run Fastchess (Cutechess but better) 
 between the 2 engines. It is written in python though, so you will need that too.
 
+Tests are also ran with opening books. At this stage in development, the 
+[8moves_v3.pgn](https://github.com/official-stockfish/books/blob/master/8moves_v3.pgn.zip) is
+the preferred opening book. Otherwise, one test could produce duplicate games. The file is
+too large to commit to the repository, but you can find the .zip file at `./book/8moves_v3.pgn.zip`.
+Extract it before testing. Note that the test script expects to find the book in the current working
+directory.
+
 ## UCI
 Cubeeb supports the [Universal Chess Interface](https://official-stockfish.github.io/docs/stockfish-wiki/UCI-Protocol-and-Stockfish-Commands.html), 
 which is the modern standard communcation
@@ -51,4 +58,5 @@ There are also unofficial commands for debugging purposes:
 * Alpha-Beta Negamax 
 * Iterative Deepening
 * Large set of UCI commands + extra debug commands (mentioned above)
-* Basic MVV->LVA Move Ordering (+303.43 Elo)
+* Basic MVV->LVA Move Ordering 
+* Quiescence Search

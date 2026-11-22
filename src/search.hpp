@@ -21,4 +21,6 @@ enum class NodeKind {
 template <NodeKind kind>
 Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score alpha, Score beta);
 
+Score quiescence(SearchInfo &info, const Board &board, int depth, int ply, Score alpha, Score beta);
+
 }

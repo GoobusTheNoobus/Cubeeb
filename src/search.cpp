@@ -1,4 +1,5 @@
 #include "search.hpp"
+#include "core.hpp"
 #include "move.hpp"
 #include "ordering.hpp"
 #include "score.hpp"
@@ -28,6 +29,12 @@ bool is_timeout() {
     return stop || (max_ms > 0 && ms > max_ms);
 }
 
+}
+
+static bool is_noisy(const Board &board, Move move) {
+
+    return move.kind() == MoveKind::EnPassant || move.kind() >= MoveKind::PromoQueen ||
+        board.board_arr[static_cast<int>(move.to())] != Piece::None;
 }
 
 void stop() { Timer::stop = true; }
@@ -80,12 +87,13 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
 
     // We check for 3-fold repetition, but only if we are not at a root node, since then it would
     // not even search a single depth
-    if (info.stack.is_repetition(board.zobrist) && kind != NodeKind::Root) {
+    if ((board.fifty_move == 100 || info.stack.is_repetition(board.zobrist)) && 
+        kind != NodeKind::Root) {
         return DRAW_SCORE;
     }
 
     if (depth == 0) {
-        return board.evaluate();
+        return quiescence(info, board, ply * 2 + 2, ply + 1, alpha, beta);
     }
 
     OrderingMoveList moves(board);
@@ -141,6 +149,61 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
     }
 
     return best_score;
+}
+
+Score quiescence(SearchInfo &info, const Board &board, int depth, int ply, Score alpha, Score beta) {
+
+    if (Timer::is_timeout()) {
+        return 0;
+    }
+
+    ++info.nodes;
+
+    if (depth == 0) {
+        return board.evaluate();
+    }
+
+    Score static_eval = board.evaluate();
+    Score best_eval = static_eval;
+
+    if (best_eval >= beta) 
+        return best_eval;
+    if (best_eval > alpha)
+        alpha = best_eval;
+
+    OrderingMoveList moves(board);
+
+    info.stack.push(board.zobrist);
+
+    std::optional<Move> opt_move;
+    while ((opt_move = moves.next())) {
+        Move move = opt_move.value();
+
+        if (!is_noisy(board, move)) {
+            continue;
+        }
+
+        Board child = board;
+        if (!child.try_move(move)) {
+            continue;
+        }
+
+        Score score = -quiescence(info, child, depth - 1, ply + 1, -beta, -alpha);
+
+        if (Timer::is_timeout()) 
+            return 0;
+
+        if (score > best_eval)
+            best_eval = score;
+
+        alpha = std::max(alpha, score);
+        if (alpha >= beta)
+            break;
+    }
+
+    info.stack.pop();
+
+    return best_eval;
 }
 
 }
