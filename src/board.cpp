@@ -273,6 +273,10 @@ void Board::make_move(Move move) {
     side_to_move = opposite(side_to_move);
     zobrist ^= zobrist_black_move();
 
+    if (move.is_null()) {
+        return;
+    }
+
     switch (kind) {
         case MoveKind::Normal: {
             clear_square(from);
@@ -419,4 +423,12 @@ std::optional<Move> Board::parse_move(const std::string &str) const {
     }
 
     return std::nullopt;
+}
+
+bool Board::has_non_pawn_material(Color side) const {
+    u64 side_bb = color_bb[static_cast<int>(side)];
+    u64 pawns_bb = side_bb & piece_bb[static_cast<int>(PieceType::Pawn)];
+
+    if (popcount(side_bb & ~pawns_bb) <= 1) return false;
+    return true;
 }

@@ -29,6 +29,7 @@ struct Board {
     bool try_move(Move move);
 
     std::optional<Move> parse_move(const std::string &str) const;
+    bool has_non_pawn_material(Color side) const;
 
     Score evaluate() const;
 

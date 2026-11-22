@@ -130,12 +130,32 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
             return tt_score;
     }
 
+    bool in_check = board.is_in_check();
+
     // Reverse Futility Pruning
     Score eval = board.evaluate();
     Score margin = 150 * depth;
-    if (kind == NodeKind::NotPrincipleVariation && !board.is_in_check() && 
+    if (kind == NodeKind::NotPrincipleVariation && !in_check && 
         eval >= beta + margin) {
         return eval;
+    }
+
+    if (kind == NodeKind::NotPrincipleVariation && !in_check && depth >= 3 &&
+        beta > eval && board.has_non_pawn_material(board.side_to_move)) {
+        Board null_board = board;
+        null_board.make_move(Move());
+
+        Score score = -negamax<NodeKind::NotPrincipleVariation>(
+            info, 
+            null_board, 
+            depth - 3, 
+            ply + 1, 
+            -beta, 
+            -(beta - 1)
+        );
+
+        if (score >= beta)
+            return score;
     }
 
     // Store a copy for TT flag 
@@ -163,12 +183,25 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
 
         Score score;
         if (kind == NodeKind::NotPrincipleVariation || move_count > 1) {
-            score = -negamax<NodeKind::NotPrincipleVariation>
-                (info, child, depth - 1, ply + 1, -alpha - 1, -alpha);
+            score = -negamax<NodeKind::NotPrincipleVariation>(
+                info, 
+                child, 
+                depth - 1, 
+                ply + 1, 
+                -alpha - 1, 
+                -alpha
+            );
         } 
 
         if (kind != NodeKind::NotPrincipleVariation && (move_count == 1 || score > alpha))
-            score = -negamax<NodeKind::PrincipleVariation>(info, child, depth - 1, ply + 1, -beta, -alpha);
+            score = -negamax<NodeKind::PrincipleVariation>(
+                info, 
+                child, 
+                depth - 1, 
+                ply + 1, 
+                -beta, 
+                -alpha
+            );
 
         if (Timer::is_timeout()) {
             return 0;
