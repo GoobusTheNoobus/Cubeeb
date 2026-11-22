@@ -1,7 +1,6 @@
 #include "ordering.hpp"
 #include "core.hpp"
 #include "move.hpp"
-#include "search.hpp"
 #include <optional>
 
 void OrderingMoveList::score_moves(Move tt_move, const History &history) {

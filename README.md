@@ -16,7 +16,7 @@ Use the Makefile at root project directory. It supports basic commands:
 ## SPRT
 Every patch that could potentially change engine performance should be tested with 
 [SPRT](https://chessprogramming.org/Sequential_Probability_Ratio_Test). 
-There is a script, `./test/sprt.py` for this. It clones the current Github source code
+There is a script, `./tests/sprt.py` for this. It clones the current Github source code
 into a temporary folder, builds it, and moves it to the sprt/ folder. It then builds 
 the current local version as the new version. It will then run Fastchess (Cutechess but better) 
 between the 2 engines. It is written in python though, so you will need that too.
@@ -24,7 +24,7 @@ between the 2 engines. It is written in python though, so you will need that too
 Tests are also ran with opening books. At this stage in development, the 
 [8moves_v3.pgn](https://github.com/official-stockfish/books/blob/master/8moves_v3.pgn.zip) is
 the preferred opening book. Otherwise, one test could produce duplicate games. The file is
-too large to commit to the repository, but you can find the .zip file at `./book/8moves_v3.pgn.zip`.
+too large to commit to the repository, but you can find the .zip file at `./tests/8moves_v3.pgn.zip`.
 Extract it before testing. Note that the test script expects to find the book in the current working
 directory.
 
