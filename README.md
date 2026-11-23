@@ -65,3 +65,5 @@ There are also unofficial commands for debugging purposes:
 * Transposition Table + TT Move Ordering
 * Principle Variation Search
 * Reversed Futility Pruning
+* History Heuristic
+* Null Move Pruning
