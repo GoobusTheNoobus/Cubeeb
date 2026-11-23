@@ -80,7 +80,7 @@ void iterative_deepening(const Board &board, int depth, int max_ms, const Repeti
     Timer::start = std::chrono::steady_clock::now();
     Timer::stop = false;
 
-    SearchInfo info { stack, 0, Move() };
+    SearchInfo info { {}, stack, 0, Move() };
     Move best_move;
 
     // Start iterative deepening
@@ -195,7 +195,7 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
     // Store a copy for TT flag 
     Score orig_alpha = alpha;
 
-    OrderingMoveList moves(board, tt_ordering_move, history);
+    OrderingMoveList moves(board, tt_ordering_move, info.killer.data[ply][0], info.killer.data[ply][1]);
 
     Score best_score = -INF_SCORE;
     Move best_move;
@@ -301,8 +301,10 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         if (alpha >= beta) {
 
             // If the move is a quiet move, we increase its historical score
-            if (!is_noisy(board, move))
+            if (!is_noisy(board, move)) {
                 history.reward(board.side_to_move, move.from(), move.to(), depth);
+                info.killer.add(ply, move);
+            }
 
             // We decrease the historical scores of previous quiet moves for not triggering cutoff
             for (int i = 0; i < moves.cur - 1; ++i) {
@@ -379,7 +381,7 @@ Score quiescence(SearchInfo &info, const Board &board, int depth, int ply, Score
     if (best_eval > alpha)
         alpha = best_eval;
 
-    OrderingMoveList moves(board, Move(), history);
+    OrderingMoveList moves(board, Move(), info.killer.data[ply][0], info.killer.data[ply][0]);
 
     info.stack.push(board.zobrist);
 

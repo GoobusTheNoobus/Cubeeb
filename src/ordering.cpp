@@ -20,11 +20,12 @@
 #include "ordering.hpp"
 #include "core.hpp"
 #include "move.hpp"
+#include "search.hpp"
 #include <optional>
 
-void OrderingMoveList::score_moves(Move tt_move, const History &history) {
+void OrderingMoveList::score_moves(Move tt_move, Move killer1, Move killer2) {
     for (int i = 0; i < size; ++i) {
-        scores[i] = score_of(moves[i], tt_move, history);
+        scores[i] = score_of(moves[i], tt_move, killer1, killer2);
     }
 }
 
@@ -38,7 +39,7 @@ constexpr int PROMO_VALUES[] = {
     200,        // knights
 };
 
-int OrderingMoveList::score_of(Move move, Move tt_move, const History &history) const {
+int OrderingMoveList::score_of(Move move, Move tt_move, Move killer1, Move killer2) const {
 
     // TT move is ordered first.
     if (tt_move.get_data() == move.get_data()) {
@@ -64,11 +65,14 @@ int OrderingMoveList::score_of(Move move, Move tt_move, const History &history) 
 
     // Promotion moves are ordered next.
     if (kind >= MoveKind::PromoQueen) {
-        return PROMO_VALUES[static_cast<int>(kind) - static_cast<int>(MoveKind::PromoQueen)];
+        return 50'000 + PROMO_VALUES[static_cast<int>(kind) - static_cast<int>(MoveKind::PromoQueen)];
     }
 
+    if (move == killer1) return 50'000;
+    if (move == killer2) return 49'999;
+
     // Finally, we return its history values - historically good moves tend to be ordered first
-    return history.data[static_cast<int>(board.side_to_move)]
+    return Search::history.data[static_cast<int>(board.side_to_move)]
         [static_cast<int>(move.from())][static_cast<int>(move.to())];
 }
 

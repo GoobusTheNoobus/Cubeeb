@@ -72,3 +72,4 @@ There are also unofficial commands for debugging purposes:
 * History Heuristic
 * Null Move Pruning
 * Late Move Reduction
+* Killer Heuristic

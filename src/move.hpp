@@ -58,6 +58,8 @@ struct Move {
 
     u16 get_data() const { return data; }
 
+    bool operator==(Move other) { return data == other.data; }
+
     private:
     u16 data;    
 };

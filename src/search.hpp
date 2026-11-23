@@ -19,6 +19,7 @@
 
 #pragma once
 #include "board.hpp"
+#include "killer.hpp"
 #include "move.hpp"
 #include "transposition.hpp"
 #include "history.hpp"
@@ -32,6 +33,7 @@ void iterative_deepening(const Board &board, int depth, int max_ms, const Repeti
 void stop();
 
 struct SearchInfo {
+    Killer killer;
     RepetitionStack stack;
     u64 nodes = 0;
     Move best_move;
