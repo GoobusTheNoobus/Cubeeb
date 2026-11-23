@@ -28,6 +28,7 @@
 #include <atomic>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <optional>
 
@@ -125,7 +126,7 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
     }
 
     if (depth <= 0) {
-        return quiescence(info, board, ply * 2 + 2, ply + 1, alpha, beta);
+        return quiescence(info, board, 8, ply + 1, alpha, beta);
     }
 
 
@@ -166,8 +167,11 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
     // Reverse Futility Pruning
     Score eval = board.evaluate();
     Score margin = 150 * depth;
-    if (kind == NodeKind::NotPrincipleVariation && !in_check && 
-        eval >= beta + margin) {
+    if (
+        kind == NodeKind::NotPrincipleVariation && !in_check && 
+        std::abs(beta) <= MAX_CENTIPAWN && // Without this, long mate lines like mate in 12 get messed up real bad
+        eval >= beta + margin
+    ) {
         return eval;
     }
 
@@ -375,11 +379,17 @@ Score quiescence(SearchInfo &info, const Board &board, int depth, int ply, Score
 
     Score static_eval = board.evaluate();
     Score best_eval = static_eval;
+    bool in_check = board.is_in_check();
 
-    if (best_eval >= beta) 
-        return best_eval;
-    if (best_eval > alpha)
-        alpha = best_eval;
+    if (!in_check) {
+        Score static_eval = board.evaluate();
+        best_eval = static_eval;
+
+        if (static_eval >= beta)
+            return static_eval;
+
+        alpha = std::max(alpha, static_eval);
+    }
 
     OrderingMoveList moves(board, Move(), info.killer.data[ply][0], info.killer.data[ply][0]);
 
@@ -389,7 +399,7 @@ Score quiescence(SearchInfo &info, const Board &board, int depth, int ply, Score
     while ((opt_move = moves.next())) {
         Move move = opt_move.value();
 
-        if (!is_noisy(board, move)) {
+        if (!is_noisy(board, move) && !in_check) {
             continue;
         }
 
