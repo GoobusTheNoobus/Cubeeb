@@ -27,11 +27,15 @@
 
 using Score = i16;
 
+// Score constants
 inline constexpr Score DRAW_SCORE = 0, MATE_SCORE = 20000, INF_SCORE = 20001, MAX_CENTIPAWN = 15000;
 
 inline constexpr Score MG_VALUES[6] = { 82, 337, 365, 477, 1025,  0 };
 inline constexpr Score EG_VALUES[6] = { 94, 281, 297, 512,  936,  0 };
 inline constexpr Score TEMPO_BONUS = 32;
+
+// Turns a score value to a UCI format (cp 500 means an evaluation of +5.0, mate -3 means 
+// mate in 3 for black) 
 
 inline std::string score_to_string(Score score) {
 
@@ -47,6 +51,8 @@ inline std::string score_to_string(Score score) {
     return "mate " + std::to_string(mateDist);
 }
 
+// Piece-square tables
+// PeSTO evaluation termporarily
 
 inline Score MG_PAWN[64] = {
       0,   0,   0,   0,   0,   0,  0,   0,
@@ -210,6 +216,8 @@ inline void init_psqt() {
         }
     }
 }
+
+// These functions lookup the tables
 
 inline Score psqt_middlegame_score(Square square, Piece piece) {
     Color color = color_of(piece);

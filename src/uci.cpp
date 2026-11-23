@@ -75,6 +75,7 @@ void process_go_command(std::istringstream &iss) {
     if (depth <= 0) depth = 100;
     if (depth > 100) depth = 100;
 
+    // Movetime is our #1 priority for timing, if not provided or 0, we assume wtime and btime are provided.
     int time = movetime;
     if (time <= 0) {
         int our_time = board.side_to_move == Color::White ? wtime : btime;

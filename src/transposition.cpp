@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cstddef>
 
+// Fixed size TT for now
 TranspositionTable::TranspositionTable() {
     size_t mb = 64;
     size_t entries = mb * 1024 * 1024 / sizeof(Entry);
@@ -39,11 +40,16 @@ void TranspositionTable::write(Entry entry) {
     size_t index = entry.key % data.size();
     Entry &old = data[index];
 
+    // Replacement conditions - either:
+    // * the current depth is higher than the old entry's depth
+    // * the current key is different than the old entry's key - since the current entry is more recent, 
+    // we assume that it is better.
     if (entry.depth >= old.depth || entry.key != old.key) {
         old = std::move(entry);
     }
 }
 
+// Samples the first 1000 entries to give a rough idea of how many entries are filled
 int TranspositionTable::hashfull() const {
     int c = 0;
     for (int i = 0; i < 1000; ++i) {

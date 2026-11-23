@@ -217,6 +217,9 @@ void MoveGenerator::generate_pawn_moves(const Board &board) {
     
 }   
 
+// Piece generations
+
+
 void MoveGenerator::generate_knight_moves(const Board &board) {
 
     u64 our = board.color_bb[static_cast<int>(board.side_to_move)];

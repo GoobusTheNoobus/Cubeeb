@@ -48,28 +48,33 @@ struct Move {
         ) {}
 
 
+    // Lookup functions that just return shifts and masks
     Square from() const { return static_cast<Square>(data & 0x3F); }
     Square to() const { return static_cast<Square>((data >> 6) & 0x3F); }
     MoveKind kind() const { return static_cast<MoveKind>((data >> 12) & 0xF); }
 
+    // For null move pruning
     bool is_null() const { return data == 0; }
 
-    u16 get_data() const { return data;}
+    u16 get_data() const { return data; }
 
     private:
     u16 data;    
 };
 
+// Named plain because it doesn't do move ordering
 struct PlainMoveList {
 
     PlainMoveList() {}
-    Move operator [] (int i) const { return data[i]; }
+    Move operator[](int i) const { return data[i]; }
     
     Move data[256];
     int size = 0;
 };
 
-inline std::ostream &operator << (std::ostream &os, const Move &move) {
+// Printing functions for moves and plain move lists
+
+inline std::ostream &operator<<(std::ostream &os, const Move &move) {
     if (move.kind() >= MoveKind::PromoKnight) {
 
         constexpr const char PROMO_CHARS[] = {'n', 'b', 'r', 'q'};

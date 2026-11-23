@@ -23,6 +23,8 @@
 namespace {
 
 // Magic numbers for slider attack generation
+
+// Used for bishop hashing
 constexpr u64 BISHOP_MAGIC[64] = { 
     0x0002020202020200ULL, 0x0002020202020000ULL, 0x0004010202000000ULL, 0x0004040080000000ULL,
     0x0001104000000000ULL, 0x0000821040000000ULL, 0x0000410410400000ULL, 0x0000104104104000ULL,
@@ -42,6 +44,7 @@ constexpr u64 BISHOP_MAGIC[64] = {
     0x0000000010020200ULL, 0x0000000404080200ULL, 0x0000040404040400ULL, 0x0002020202020200ULL
 };
 
+// Used for rook hashing
 constexpr u64 ROOK_MAGIC[64] = {
     0x0080001020400080ULL, 0x0040001000200040ULL, 0x0080081000200080ULL, 0x0080040800100080ULL,
     0x0080020400080080ULL, 0x0080010200040080ULL, 0x0080008001000200ULL, 0x0080002040800100ULL,
@@ -61,7 +64,7 @@ constexpr u64 ROOK_MAGIC[64] = {
     0x0001000204080011ULL, 0x0001000204000801ULL, 0x0001000082000401ULL, 0x0001FFFAABFAD1A2ULL
 };
 
-// Attack bitboards - I already have them preloaded at compile time
+// Attack bitboards - have them preloaded at compile time for less logic
 
 constexpr u64 WPAWN_ATTACKS[64] = {
     0x0000000000000200ULL, 0x0000000000000500ULL, 0x0000000000000A00ULL, 0x0000000000001400ULL,
@@ -139,6 +142,8 @@ constexpr u64 KING_ATTACKS[64] = {
     0x2838000000000000ULL, 0x5070000000000000ULL, 0xA0E0000000000000ULL, 0x40C0000000000000ULL,
 };
 
+// Represents the squares that a piece could be on to block the rook/bishop's attacks, given the square.
+
 constexpr u64 BISHOP_MASKS[64] = {
     0x0040201008040200ULL, 0x0000402010080400ULL, 0x0000004020100A00ULL, 0x0000000040221400ULL,
     0x0000000002442800ULL, 0x0000000204085000ULL, 0x0000020408102000ULL, 0x0002040810204000ULL,
@@ -179,6 +184,7 @@ constexpr u64 ROOK_MASKS[64] = {
 };
 
 // These are just the number of '1' bits in the bishop and rook masks
+
 constexpr int BISHOP_RELEVANCIES[64] = {
     6, 5, 5, 5, 5, 5, 5, 6,
     5, 5, 5, 5, 5, 5, 5, 5,
@@ -201,10 +207,11 @@ constexpr int ROOK_RELEVANCIES[64] = {
     12, 11, 11, 11, 11, 11, 11, 12,
 };
 
-// We generate these at startup
+// We generate these at startup, since they are too large to have them at compile time.
 u64 bishop_attacks[64][512];
 u64 rook_attacks[64][4096];
 
+// Derives a unique set of blockers for any given index on the given mask.
 u64 generate_blocker_from_index(int index, u64 mask) {
 
     u64 blocker = 0;
@@ -223,6 +230,8 @@ u64 generate_blocker_from_index(int index, u64 mask) {
 
     return blocker;
 }
+
+// Bishop/Rook attack generation logic
 
 struct DirDelta { int r, f; };
 constexpr DirDelta BISHOP_DIR[] = { {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
@@ -289,6 +298,8 @@ u64 raycast_rook(Square square, u64 blockers) {
     return mask;
 }
 
+// Used the previously defined magic numbers to generate unique indeces for the bishop/rook tables.
+
 int get_bishop_hash(Square square, u64 occ) {
     occ &= BISHOP_MASKS[static_cast<int>(square)];
 
@@ -314,8 +325,7 @@ int get_rook_hash(Square square, u64 occ) {
 void init_attacks() {
     for (Square sq = Square::A1; sq <= Square::H8; sq = static_cast<Square>(static_cast<int>(sq) + 1)) {
 
-        // We have leaper attacks precomputed, so we don't need to do that here.
-
+        // Generate bishop attacks for the square
         for (int i = 0; i < (1 << BISHOP_RELEVANCIES[static_cast<int>(sq)]); ++i) {
             u64 blockers = generate_blocker_from_index(i, BISHOP_MASKS[static_cast<int>(sq)]);
             u64 attacks = raycast_bishop(sq, blockers);
@@ -324,6 +334,7 @@ void init_attacks() {
             bishop_attacks[static_cast<int>(sq)][index] = attacks;
         }
 
+        // Generate the rook attacks for the square
         for (int i = 0; i < (1 << ROOK_RELEVANCIES[static_cast<int>(sq)]); ++i) {
             u64 blockers = generate_blocker_from_index(i, ROOK_MASKS[static_cast<int>(sq)]);
             u64 attacks = raycast_rook(sq, blockers);
@@ -333,6 +344,9 @@ void init_attacks() {
         }
     }
 }
+
+// Lookup functions
+
 
 u64 get_pawn_attack(Square square, Color color) {
     return color == Color::White ? WPAWN_ATTACKS[static_cast<int>(square)] : BPAWN_ATTACKS[static_cast<int>(square)];

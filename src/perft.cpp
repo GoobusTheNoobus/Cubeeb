@@ -25,6 +25,7 @@
 #include <iostream>
 #include <format>
 
+// Do performance test on a position to a certian depth
 void perft_divide(const Board &board, int depth) {
 
     PlainMoveList moves;
@@ -57,6 +58,8 @@ void perft_divide(const Board &board, int depth) {
     auto end_time = std::chrono::steady_clock::now();
 
     double ms = std::max<int>(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count(), 1);
+
+    // Print pretty summary which is easy to read
 
     std::cout << "\n================ PERFT SUMMARY ================\n";
     std::cout << "Depth:           " << depth << '\n';

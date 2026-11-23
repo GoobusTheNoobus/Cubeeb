@@ -40,12 +40,14 @@ constexpr int PROMO_VALUES[] = {
 
 int OrderingMoveList::score_of(Move move, Move tt_move, const History &history) const {
 
+    // TT move is ordered first.
     if (tt_move.get_data() == move.get_data()) {
         return 100'000;
     }
 
     MoveKind kind = move.kind();
 
+    // Captures are ordered next.
     if (board.board_arr[static_cast<int>(move.to())] != Piece::None) {
 
         PieceType moving = ptype_of(board.board_arr[static_cast<int>(move.from())]);
@@ -60,14 +62,17 @@ int OrderingMoveList::score_of(Move move, Move tt_move, const History &history) 
         return mvvlva_score;
     }
 
+    // Promotion moves are ordered next.
     if (kind >= MoveKind::PromoQueen) {
         return PROMO_VALUES[static_cast<int>(kind) - static_cast<int>(MoveKind::PromoQueen)];
     }
 
+    // Finally, we return its history values - historically good moves tend to be ordered first
     return history.data[static_cast<int>(board.side_to_move)]
         [static_cast<int>(move.from())][static_cast<int>(move.to())];
 }
 
+// We don't immediately sort the list - instead we sort them one by one
 std::optional<Move> OrderingMoveList::next() {
 
     if (cur >= size) {

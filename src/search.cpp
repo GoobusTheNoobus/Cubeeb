@@ -32,6 +32,7 @@
 
 namespace Search {
 
+// Used for time management for the search
 namespace Timer {
 
 int max_ms;
@@ -49,8 +50,9 @@ bool is_timeout() {
     return stop || (max_ms > 0 && ms > max_ms);
 }
 
-}
+} // namespace Timer
 
+// Gets whether a move captures anything or promotes
 static bool is_noisy(const Board &board, Move move) {
 
     return move.kind() == MoveKind::EnPassant || move.kind() >= MoveKind::PromoQueen ||
@@ -66,6 +68,7 @@ void iterative_deepening(const Board &board, int depth, int max_ms, const Repeti
         return;
     }
 
+    // Reset Timer states
     Timer::max_ms = max_ms;
     Timer::start = std::chrono::steady_clock::now();
     Timer::stop = false;
@@ -73,6 +76,7 @@ void iterative_deepening(const Board &board, int depth, int max_ms, const Repeti
     SearchInfo info { stack, 0, Move() };
     Move best_move;
 
+    // Start iterative deepening
     for (int cur_depth = 1; cur_depth <= depth; ++cur_depth) {
 
         if (Timer::is_timeout()) {
@@ -118,6 +122,8 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
     }
 
 
+    // Transposition table probing
+
     auto tt_probe = tt.probe(board.zobrist);
     Move tt_ordering_move = tt_probe ? tt_probe->move : Move();
     if (tt_probe && tt_probe->depth >= depth) {
@@ -158,6 +164,9 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         return eval;
     }
 
+    // Null move pruning
+    // Since skipping a move in chess is almost always worst than playing a move, if even skipping a move 
+    // triggers cut-off, we do a shallow null search to filter all really good positions
     if (kind == NodeKind::NotPrincipleVariation && !in_check && depth >= 3 &&
         beta > eval && board.has_non_pawn_material(board.side_to_move)) {
         Board null_board = board;
@@ -199,6 +208,11 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
 
         ++move_count;
 
+        // Principle variation search - we rely on our move ordering and trust that the first move 
+        // is most likely to be the best, so we search full alpha-beta window for that move, then
+        // null window (-alpha - 1, -alpha) for the following moves. If the resulting score is good,
+        // we search at full window
+
         Score score;
         if (kind == NodeKind::NotPrincipleVariation || move_count > 1) {
             score = -negamax<NodeKind::NotPrincipleVariation>(
@@ -232,11 +246,14 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
 
         alpha = std::max(alpha, score);
 
+        // Alpha-beta pruning
         if (alpha >= beta) {
 
+            // If the move is a quiet move, we increase its historical score
             if (!is_noisy(board, move))
                 history.reward(board.side_to_move, move.from(), move.to(), depth);
 
+            // We decrease the historical scores of previous quiet moves for not triggering cutoff
             for (int i = 0; i < moves.cur - 1; ++i) {
                 
                 Move move = moves.moves[i];
@@ -268,7 +285,7 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         info.best_move = best_move;
     }
 
-
+    // Storing the search results to the Transposition Table for future searches
 
     TranspositionTable::EntryType store_flag;
     if (best_score <= orig_alpha) store_flag = TranspositionTable::EntryType::Upper;

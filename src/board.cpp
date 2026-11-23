@@ -35,6 +35,9 @@ bool RepetitionStack::is_repetition(u64 cur) const {
 
     int count = 0;
 
+    // We start at ply - 2 since that is the last hash where the side to move is at the current.
+    // Note that the current position's hash isn't in here, and we decrement by 2 because 
+    // Repetition must occur on one side's moves
     for (int i = ply - 2; i >= 0; i -= 2) {
         if (data[i] == cur) {
             ++count;
@@ -55,14 +58,16 @@ Board::Board(std::string fen) {
     parse_fen(std::move(fen));
 }
 
-std::ostream &operator << (std::ostream &os, const Board &board) {
+std::ostream &operator<<(std::ostream &os, const Board &board) {
 
-    // Print board
+    // Print board, start from the top rank and iterate to bottom
     for (int r = 7; r >= 0; --r) {
+
         os << r + 1 << ' ';
         for (int f = 0; f <= 7; ++f) {
             os << piece_to_char(board.board_arr[r << 3 | f]) << ' ';
         } 
+
         os << "\n";
     }
 
@@ -88,7 +93,6 @@ std::ostream &operator << (std::ostream &os, const Board &board) {
 }
 
 // Don't question my FEN parsing approach
-// TODO: Implement zobrist hashing 
 constexpr int 
     FEN_STAGE_BOARD = 0, FEN_STAGE_SIDE = 1, FEN_STAGE_CASTLING = 2,
     FEN_STAGE_EP = 3, FEN_STAGE_RULE_FIFTY = 4;
@@ -241,6 +245,8 @@ void Board::place_piece(Square square, Piece piece) {
 
     zobrist ^= zobrist_psq(piece, square);
 
+    // Update PSQT values
+
     Score mg_piece_value = psqt_middlegame_score(square, piece);
     Score eg_piece_value = psqt_endgame_score(square, piece);
 
@@ -264,6 +270,8 @@ void Board::clear_square(Square square) {
 
     zobrist ^= zobrist_psq(piece_there, square);
 
+    // Update PSQT values
+
     Score mg_piece_value = psqt_middlegame_score(square, piece_there);
     Score eg_piece_value = psqt_endgame_score(square, piece_there);
 
@@ -281,7 +289,6 @@ void Board::make_move(Move move) {
 
     Piece piece_moving = board_arr[static_cast<int>(from)];
     Piece piece_captured = kind == MoveKind::EnPassant ? make_piece(PieceType::Pawn, opposite(side_to_move)) : board_arr[static_cast<int>(to)];
-
 
     // We reset ep_square because almost always a move resets it. If it doesn't (double pawn push), it will restore.
 
@@ -309,6 +316,7 @@ void Board::make_move(Move move) {
             clear_square(from);
             place_piece(to, piece_moving);
 
+            // Set the en passant square right behind the pawn
             ep_square = static_cast<Square>(static_cast<int>(to) - (us == Color::White ? 8 : -8));
             zobrist ^= zobrist_ep(ep_square);
             break;
@@ -318,7 +326,7 @@ void Board::make_move(Move move) {
             clear_square(from);
             place_piece(to, piece_moving);
 
-            // The captured pawn's square is actually behind
+            // The captured pawn's square is actually behind the target square
             Square capture_square = static_cast<Square>(static_cast<int>(to) - (us == Color::White ? 8 : -8));
 
             clear_square(capture_square);
@@ -413,6 +421,8 @@ bool Board::try_move(Move move) {
 }
 
 Score Board::evaluate() const {
+
+    // Mix PSQT squares based on the current game phase
     int phase = game_phase(piece_bb);
 
     Score material_score = (mg_score * phase + eg_score * (MAX_PHASE - phase)) / MAX_PHASE;
@@ -429,6 +439,7 @@ std::optional<Move> Board::parse_move(const std::string &str) const {
     for (int i = 0; i < moves.size; ++i) {
         Move move = moves[i];
 
+        // Test if move is legal (movegen is pseudo-legal)
         Board test_board = *this;
         if (!test_board.try_move(move))
             continue;

@@ -26,13 +26,17 @@
 #include <ostream>
 #include <string>
 
+// Constants
+
 inline constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 inline constexpr u8 CASTLING_WK = 1, CASTLING_WQ = 2, CASTLING_BK = 4, CASTLING_BQ = 8;
 inline constexpr u8 CASTLING_WK_IDX = 0, CASTLING_WQ_IDX = 1, CASTLING_BK_IDX = 2, CASTLING_BQ_IDX = 3;
 
+// Board representation
+
 struct Board {
 
-    // Sets up starting position
+    // Sets up empty position
     Board(); 
 
     // Sets up custom position via fen
@@ -40,14 +44,22 @@ struct Board {
 
     void parse_fen(std::string fen); // Invalid fen may result in undefined behavior
 
+    // Attack detections
     bool is_square_attacked(Square square, Color color) const;
+
+    // Detects whether a certain colour's king is attacked
     bool is_in_check(Color color) const;
+
+    // Detects whether the side to move's king is attacked
     bool is_in_check() const;
 
     void make_move(Move move);
     bool try_move(Move move);
 
+    // Turns a string algebraic notation move into an internal represented Move
     std::optional<Move> parse_move(const std::string &str) const;
+
+    // For null move pruning
     bool has_non_pawn_material(Color side) const;
 
     Score evaluate() const;
@@ -70,16 +82,24 @@ struct Board {
 
     u64 zobrist = 0;
 
+    // Piece-square scores
+
     Score mg_score = 0;
     Score eg_score = 0;
 
     private:
+
+    // Places a piece on a square, given that the square is empty
     void place_piece(Square square, Piece piece);
+
+    // Clears a square, doesn't matter if it is already empty
     void clear_square(Square square);
 };  
 
-std::ostream &operator << (std::ostream &os, const Board &board);
+// Printing support for the board
+std::ostream &operator<<(std::ostream &os, const Board &board);
 
+// For tracking 3-fold repetitions
 struct RepetitionStack {
     u64 data[1000];
     int ply = 0;

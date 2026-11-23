@@ -21,6 +21,9 @@
 #include "core.hpp"
 #include <algorithm>
 
+// History heuristic - store how good a move is historically.
+// Does not affect evaluated score, but does affect the order in which the moves are searched.
+
 struct History {
     int data[2][64][64]{};
     static constexpr int MAX_HISTORY = 50000;
