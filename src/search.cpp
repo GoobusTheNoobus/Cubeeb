@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <iostream>
 #include <optional>
 
@@ -52,6 +53,12 @@ bool is_timeout() {
 
 } // namespace Timer
 
+int calculate_reduction(int depth, int move_count) {
+    int r = std::log(depth) * std::log(move_count) / 3 + 0.6;
+    // std::cout << r << std::endl;
+    return r;
+}
+
 // Gets whether a move captures anything or promotes
 static bool is_noisy(const Board &board, Move move) {
 
@@ -63,7 +70,7 @@ void stop() { Timer::stop = true; }
 
 void iterative_deepening(const Board &board, int depth, int max_ms, const RepetitionStack &stack) {
 
-    if (depth == 0) {
+    if (depth <= 0) {
         std::cout << "bestmove [none]\n";
         return;
     }
@@ -117,7 +124,7 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         return DRAW_SCORE;
     }
 
-    if (depth == 0) {
+    if (depth <= 0) {
         return quiescence(info, board, ply * 2 + 2, ply + 1, alpha, beta);
     }
 
@@ -208,13 +215,57 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
 
         ++move_count;
 
+        if (kind == NodeKind::Root && Timer::elapsed() > 1000) {
+            int elapsed = Timer::elapsed();
+            std::cout << "depth " << depth 
+                << " currmove " << move << " currmovenumber " << move_count << " nodes " << info.nodes
+                << " time " << elapsed << " nps " << (info.nodes * 1000 / elapsed) <<  std::endl;
+        }
+
+        bool gives_check = child.is_in_check();
+        bool noisy = is_noisy(board, move);
+
         // Principle variation search - we rely on our move ordering and trust that the first move 
         // is most likely to be the best, so we search full alpha-beta window for that move, then
         // null window (-alpha - 1, -alpha) for the following moves. If the resulting score is good,
         // we search at full window
 
         Score score;
-        if (kind == NodeKind::NotPrincipleVariation || move_count > 1) {
+
+        // Late move reduction - if the move is late in the ordered move list, search with a reduced depth
+        if (
+            kind == NodeKind::NotPrincipleVariation &&
+            depth >= 3 &&
+            move_count > 5 &&
+            !in_check && 
+            !gives_check &&
+            !noisy
+        ) {
+
+            int reduction = calculate_reduction(depth, move_count);
+            score = -negamax<NodeKind::NotPrincipleVariation>(
+                info, 
+                child, 
+                depth - 1 - reduction, 
+                ply + 1, 
+                -alpha - 1, 
+                -alpha
+            );
+
+            // If reduced search looks good, we do an unreduced null-window search to verify.
+            if (score > alpha) {
+                score = -negamax<NodeKind::NotPrincipleVariation>(
+                    info, 
+                    child, 
+                    depth - 1, 
+                    ply + 1, 
+                    -alpha - 1, 
+                    -alpha
+                );
+            }
+        }
+
+        else if (kind == NodeKind::NotPrincipleVariation || move_count > 1) {
             score = -negamax<NodeKind::NotPrincipleVariation>(
                 info, 
                 child, 

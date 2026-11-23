@@ -28,6 +28,10 @@ too large to commit to the repository, but you can find the .zip file at `./test
 Extract it before testing. Note that the test script expects to find the book in the current working
 directory.
 
+
+
+For 
+
 ## UCI
 Cubeeb supports the [Universal Chess Interface](https://official-stockfish.github.io/docs/stockfish-wiki/UCI-Protocol-and-Stockfish-Commands.html), 
 which is the modern standard communcation
@@ -67,3 +71,4 @@ There are also unofficial commands for debugging purposes:
 * Reversed Futility Pruning
 * History Heuristic
 * Null Move Pruning
+* Late Move Reduction
