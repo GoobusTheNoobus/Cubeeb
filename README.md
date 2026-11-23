@@ -1,6 +1,6 @@
 # Cubeeb
-Authors: GoobusTheNoobus, picowso
-Version: 0.4.0
+Authors: GoobusTheNoobus, picowso  
+Version: 0.4.0  
 Elo (CCRL Blitz): ~2060
 
 Cubeeb is a UCI chess engine written in C++20. It uses bitboards, negamax search algorithm, and applies
