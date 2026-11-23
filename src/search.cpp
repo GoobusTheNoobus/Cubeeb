@@ -81,7 +81,7 @@ void iterative_deepening(const Board &board, int depth, int max_ms, const Repeti
     Timer::start = std::chrono::steady_clock::now();
     Timer::stop = false;
 
-    SearchInfo info { {}, stack, 0, Move() };
+    SearchInfo info {.killer={}, .stack=stack, .pv={}, .pv_len={} };
     Move best_move;
 
     // Start iterative deepening
@@ -104,7 +104,14 @@ void iterative_deepening(const Board &board, int depth, int max_ms, const Repeti
         std::cout 
             << "info depth " << cur_depth << " score " << score_to_string(score)
             << " nodes " << info.nodes << " time " << elapsed << " nps " << (info.nodes * 1000 / elapsed)
-            << " hashfull " << tt.hashfull() << " pv " << best_move << std::endl;
+            << " hashfull " << tt.hashfull() << " pv ";
+
+        // Print entire PV line
+        for (int i = 0; i < info.pv_len[0]; ++i) {
+            std::cout << info.pv[0][i] << ' ';
+        }
+        
+        std::cout << std::endl;
     }
 
     std::cout << "bestmove " << best_move << std::endl;
@@ -113,6 +120,7 @@ void iterative_deepening(const Board &board, int depth, int max_ms, const Repeti
 template <NodeKind kind>
 Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score alpha, Score beta) {
     ++info.nodes;
+    info.pv_len[ply] = ply;
 
     if (Timer::is_timeout()) {
         return 0;
@@ -297,6 +305,16 @@ Score negamax(SearchInfo &info, const Board &board, int depth, int ply, Score al
         if (score > best_score) {
             best_score = score;
             best_move = move;
+
+            if (kind != NodeKind::NotPrincipleVariation && score > alpha) {
+                info.pv[ply][ply] = move;
+
+                for (int i = ply + 1; i < info.pv_len[ply + 1]; ++i) {
+                    info.pv[ply][i] = info.pv[ply + 1][i];
+                }
+
+                info.pv_len[ply] = info.pv_len[ply + 1] ;
+            }
         }
 
         alpha = std::max(alpha, score);

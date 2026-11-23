@@ -37,6 +37,9 @@ struct SearchInfo {
     RepetitionStack stack;
     u64 nodes = 0;
     Move best_move;
+
+    Move pv[100][100];
+    int pv_len[100];
 };
 
 enum class NodeKind {
