@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 
 # --- Configuration ---
-OLD_REF = "HEAD~1"
+OLD_REF = "HEAD"
 FASTCHESS = "fastchess"    # Path to fastchess executable if not in PATH
 # ---------------------
 
